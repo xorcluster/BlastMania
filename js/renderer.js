@@ -45,6 +45,7 @@ class Renderer {
      * @param { number } angle 
      */
     pushTransform(tx, ty, angle) {
+        this.transform.set(tx, ty, angle);
         this.graphics.translate(this.transform.tx, this.transform.ty);
         this.graphics.rotate(this.transform.angle);
     }

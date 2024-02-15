@@ -53,7 +53,11 @@ class Main {
 		this.graphics.fillStyle = "#ffffff";
         this.graphics.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.renderer.pushTransform(64, 64, this.rotation);
+        this.graphics.fillStyle = "#000";
+        this.graphics.textBaseline = "bottom";
+        this.graphics.fillText("Time: " + Math.floor(Date.now() / 1000.0), 0, this.canvas.height);
+
+        this.renderer.pushTransform(64, 64, (Date.now() / 1000.0) * (Math.PI * 2));
         this.renderer.drawImage(this.noteimg, 0, 0, 128, 128);
         this.renderer.popTransform();
 	}

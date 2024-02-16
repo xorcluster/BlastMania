@@ -21,17 +21,58 @@ class Main {
 
         document.body.appendChild(this.canvas);
 
-        this.noteimg = new OffscreenCanvas(128, 128);
+        const arrow = new OffscreenCanvas(128, 128);
         {
-            let g = this.noteimg.getContext("2d");
+            let g = arrow.getContext("2d");
 
-            g.fillStyle = "#f00";
-            g.fillRect(0, 0, 64, 64);
+            g.beginPath();
+            g.lineTo(0, 0);
+            g.lineTo(0, 128);
+            g.lineTo(32, 128);
+            g.lineTo(32, 32);
+            
+            g.lineTo(32, 56);
+            g.lineTo(104, 128);
+            g.lineTo(128, 104);
+            g.lineTo(56, 32);
+            g.lineTo(32, 32);
+
+            g.lineTo(128, 32);
+            g.lineTo(128, 0);
+            g.fill();
+        }
+
+        const middle = new OffscreenCanvas(128, 128);
+        {
+            let g = middle.getContext("2d");
+
+            g.lineWidth = 4;
+
+            g.beginPath();
+            g.roundRect(0, 0, 128, 128, 32);
+            g.closePath();
+            g.fill();
         }
 
         this.graphics = this.canvas.getContext('2d');
         this.renderer = new Renderer(this.graphics, this.canvas.width, this.canvas.height);
 
+        {
+            const noteskin = new Noteskin(
+                [ -90, 0, 0, 90, 180 ],
+                [
+                    [ arrow ],
+                    [ arrow ],
+                    [ middle ],
+                    [ arrow ],
+                    [ arrow ],
+                ]
+            )
+
+            this.stage = new Stage(noteskin);
+        }
+
+        this.resize(innerWidth, innerHeight);
         window.addEventListener("resize", () => this.resize(innerWidth, innerHeight));
     }
 
@@ -44,22 +85,17 @@ class Main {
         this.canvas.height = height;
 
         this.renderer.resize(this.canvas.width, this.canvas.height);
+        this.stage.resize(this.canvas.width, this.canvas.height);
     }
 
     update() {
-        this.rotation += 0.01;
     }
     draw() {
-		this.graphics.fillStyle = "#ffffff";
+		this.graphics.fillStyle = "#fff";
         this.graphics.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.graphics.fillStyle = "#000";
-        this.graphics.textBaseline = "bottom";
-        this.graphics.fillText("Time: " + Math.floor(Date.now() / 1000.0), 0, this.canvas.height);
-
-        this.renderer.pushTransform(64, 64, (Date.now() / 1000.0) * (Math.PI * 2));
-        this.renderer.drawImage(this.noteimg, 0, 0, 128, 128);
-        this.renderer.popTransform();
+        this.stage.draw();
+        this.renderer.drawImage(this.stage.canvas, 0, 0, this.stage.canvas.width, this.stage.canvas.height);
 	}
 }
 

@@ -1,10 +1,25 @@
 document.title = "Blast Mania";
 
+class Controller {
+    constructor() {
+        this.down = new Array(5);
+        this.glow = new Array(5);
+    }
+
+    hit(index) {
+        this.glow[index] = performance.now() + 250.0;
+    }
+    pressed(index, trigger) {
+        if (trigger)
+            this.glow[index] = performance.now() + 250.0;
+        this.down[index] = trigger;
+    }
+}
 class Main {
     rotation = 0;
 
     /**
-     * @param {*} tickrate 
+     * @param { number } tickrate 
      */
     constructor(tickrate) {
         this.tickrate = tickrate;
@@ -21,59 +36,44 @@ class Main {
 
         document.body.appendChild(this.canvas);
 
-        const arrow = new OffscreenCanvas(128, 128);
-        {
-            let g = arrow.getContext("2d");
-
-            g.beginPath();
-            g.lineTo(0, 0);
-            g.lineTo(0, 128);
-            g.lineTo(32, 128);
-            g.lineTo(32, 32);
-            
-            g.lineTo(32, 56);
-            g.lineTo(104, 128);
-            g.lineTo(128, 104);
-            g.lineTo(56, 32);
-            g.lineTo(32, 32);
-
-            g.lineTo(128, 32);
-            g.lineTo(128, 0);
-            g.fill();
-        }
-
-        const middle = new OffscreenCanvas(128, 128);
-        {
-            let g = middle.getContext("2d");
-
-            g.lineWidth = 4;
-
-            g.beginPath();
-            g.roundRect(0, 0, 128, 128, 32);
-            g.closePath();
-            g.fill();
-        }
-
         this.graphics = this.canvas.getContext('2d');
         this.renderer = new Renderer(this.graphics, this.canvas.width, this.canvas.height);
 
-        {
-            const noteskin = new Noteskin(
-                [ -90, 0, 0, 90, 180 ],
-                [
-                    [ arrow ],
-                    [ arrow ],
-                    [ middle ],
-                    [ arrow ],
-                    [ arrow ],
-                ]
-            )
+        this.controller = new Controller();
+        this.input = new Input(this);
 
-            this.stage = new Stage(noteskin);
-        }
+        /** @type { Array<Menu> } */
+        this.menus = new Array();
+        /** @type { Noteskin } */
+        this.noteskin = undefined;
 
-        this.resize(innerWidth, innerHeight);
         window.addEventListener("resize", () => this.resize(innerWidth, innerHeight));
+
+        document.addEventListener("keydown", (e) => this.input.keypress(e.key, e.code, true, e.repeat));
+        document.addEventListener("keyup", (e) => this.input.keypress(e.key, e.code, false, false));
+    }
+
+    init() {
+        this.img_arrow = Main.loadImage("assets/arrow.png");
+        this.img_arrow_glow = Main.loadImage("assets/arrow-glow.png");
+        this.img_arrow_receptor = Main.loadImage("assets/arrow-receptor.png");
+
+        this.noteskin = new Noteskin(
+            [ -90, 0, 0, 90, 180, ],
+            [
+                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
+                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
+                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
+                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
+                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
+            ]
+        )
+
+        this.menus.push(new MainMenu(this));
+        this.menus.push(new GameMenu(this));
+        this.menus[0].hidden = false;
+
+        this.menus.forEach((e) => { e.resize(this.canvas.width, this.canvas.height) });
     }
 
     /**
@@ -84,23 +84,82 @@ class Main {
         this.canvas.width = width;
         this.canvas.height = height;
 
-        this.renderer.resize(this.canvas.width, this.canvas.height);
-        this.stage.resize(this.canvas.width, this.canvas.height);
+        this.menus.forEach((e) => { e.resize(width, height) });
     }
 
     update() {
+        this.menus.forEach((e) => { if (e.hidden) return; e.update() });
     }
+
     draw() {
 		this.graphics.fillStyle = "#fff";
         this.graphics.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.stage.draw();
-        this.renderer.drawImage(this.stage.canvas, 0, 0, this.stage.canvas.width, this.stage.canvas.height);
-	}
+        this.menus.forEach((e) => {
+            if (e.hidden) return; e.draw();
+            this.renderer.drawImage(e.canvas, 0, 0, this.canvas.width, this.canvas.height)
+        });
+    }
+
+    /**
+     * @param { string } path
+     * @param { HTMLAudioElement } 
+     */
+    static loadAudio(path) {
+        return new Audio(path);
+    }
+
+    /**
+     * @param { string } path 
+     * @returns { HTMLImageElement }
+     */
+    static loadImage(path) {
+        const image = new Image();
+        if (!path.startsWith("data:"))
+            image.src = "./".concat(path);
+        else
+            image.src = path;
+
+        return image;
+    }
+
+    static loadFile() {
+        const openFile = document.createElement("input");
+        openFile.type = "file";
+        openFile.click();
+
+        openFile.addEventListener("change", (e) => {
+            let fr = new FileReader();
+            fr.addEventListener("load", (e) => {
+                return fr.result;
+            });
+            fr.readAsDataURL(openFile.files.item(0));
+        });
+    }
+
+    /**
+     * @param { string } name 
+     * @param { string } data 
+     */
+    static storeInfo(name, data) {
+        localStorage.setItem("blastmania-".concat(name), data);
+    }
 }
 
-const main = new Main(64);
-setInterval(main.update, 1000.0 / main.tickrate);
+const _main = new Main(64);
 
-function drawloop() { main.draw(); requestAnimationFrame(drawloop) }
-requestAnimationFrame(drawloop);
+let text = "Click the frame to start Blast-Mania!";
+_main.graphics.fillText(text, _main.canvas.width / 2 - _main.graphics.measureText(text).width / 2, _main.canvas.height / 2);
+function start() {
+    document.removeEventListener("mousedown", start);
+    _main.init();
+
+    setTimeout(() => {
+        setInterval(() => { _main.update(); }, 1000.0 / _main.tickrate);
+    
+        function drawloop() { _main.draw(); requestAnimationFrame(drawloop) }
+        requestAnimationFrame(drawloop);
+    }, 200);
+}
+
+document.addEventListener("mousedown", start);

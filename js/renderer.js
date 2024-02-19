@@ -1,7 +1,7 @@
 class Noteskin {
     /**
      * @param { Array<number> } angles 
-     * @param { Array<Array<ImageBitmap>> } note_textures 
+     * @param { Array<Array<HTMLImageElement>> } note_textures 
      */
     constructor(angles, note_textures) {
         this.angles = angles;
@@ -27,10 +27,11 @@ class Noteskin {
 
     /**
      * @param { number } i 
+     * @param { number } j 
      * @returns { Array<number> }
      */
-    getNoteDimensions(i) {
-        const tex = this.getLaneTexture(i, 0);
+    getNoteDimensions(i, j) {
+        const tex = this.getLaneTexture(i, j);
         return [ tex.width, tex.height ];
     }
 }
@@ -90,6 +91,55 @@ class Renderer {
     }
 
     /**
+     * @param { number } x 
+     * @param { number } y 
+     * @param { number } w 
+     * @param { number } h 
+     * @param { string } color 
+     */
+    rect(x, y, w, h, color) {
+        this.graphics.fillStyle = color;
+        this.graphics.fillRect(x, y, w, h);
+    }
+
+    /**
+     * @param { string } type 
+     * @param { number } px 
+     */
+    setFont(type, px) {
+        this.graphics.font = px.toString().concat("px ", type);
+    }
+
+    /**
+     * @param { string } text 
+     * @param { number } x 
+     * @param { number } y 
+     * @param { string } color 
+     */
+    text(text, x, y, color) {
+        this.graphics.textBaseline = "top";
+        this.graphics.fillStyle = color;
+        this.graphics.fillText(text, x, y);
+    }
+
+    /**
+     * @param { string } text 
+     * @returns { number }
+     */
+    textWidth(text) {
+        return this.graphics.measureText(text).width;
+    }
+
+    /**
+     * @param { string } text 
+     * @returns { number }
+     */
+    textHeight(text) {
+        const metric = this.graphics.measureText(text);
+        return metric.fontBoundingBoxAscent + metric.fontBoundingBoxDescent;
+    }
+
+    /**
      * @param { number } tx 
      * @param { number } ty 
      * @param { number } angle 
@@ -99,7 +149,7 @@ class Renderer {
         this.graphics.translate(this.transform.tx, this.transform.ty);
         this.graphics.rotate(this.transform.angle);
     }
-    resetTransform() {
+    restoreTransform() {
         this.graphics.translate(this.transform.tx, this.transform.ty);
         this.graphics.rotate(this.transform.angle);
     }
@@ -115,7 +165,7 @@ class Renderer {
         this.graphics.restore();
     }
     /**
-     * @param { ImageBitmap } img 
+     * @param { HTMLImageElement } img 
      * @param { number } x 
      * @param { number } y 
      * @param { number } sx 

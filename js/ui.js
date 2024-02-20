@@ -2,6 +2,8 @@ class Component extends EventTarget {
     hidden = false;
 
     /**
+     * @param { number } x 
+     * @param { number } y 
      * @param { string } name 
      */
     constructor(x, y, name) {
@@ -30,14 +32,17 @@ class Component extends EventTarget {
     draw(menu, r) {}
 
     /**
+     * @param { Menu } menu 
      * @param { number } x 
      * @param { number } y 
      */
-    mousepress(x, y) {}
+    mousepress(menu, x, y) {}
     /**
+     * @param { Menu } menu 
      * @param { string } key 
+     * @param { string } code 
      */
-    keypress(key) {}
+    keypress(menu, key, code) {}
 
     /**
      * @param { number } x 
@@ -50,6 +55,63 @@ class Component extends EventTarget {
      */
     setY(y) {
         this.y = y;
+    }
+}
+
+class WidgetComponent extends Component {
+    /**
+     * @param { number } x 
+     * @param { number } y 
+     * @param { number } width 
+     * @param { number } height 
+     */
+    constructor(x, y, width, height) {
+        super(x, y, "Widget");
+
+        this.width = width;
+        this.height = height;
+    }
+
+    /**
+     * @param { Menu } menu 
+     */
+    update(menu) {
+
+    }
+    /**
+     * @param { Menu } menu 
+     * @param { Renderer } r 
+     */
+    draw(menu, r) {
+        r.graphics.beginPath();
+        r.graphics.rect(this.x, this.y, this.width, this.height);
+        r.graphics.closePath();
+        r.graphics.clip();
+
+        r.pushTransform(this.x, this.y, 0);
+        r.clear("#222f");
+    }
+
+    /**
+     * @param { Menu } menu 
+     * @param { number } x 
+     * @param { number } y 
+     */
+    mousepress(menu, x, y) {
+
+    }
+    /**
+     * @param { Menu } menu 
+     * @param { string } key
+     * @param { string } code 
+     */
+    keypress(menu, key, code) {
+
+    }
+
+    centerize() {
+        this.x -= this.width / 2;
+        this.y -= this.height / 2;
     }
 }
 
@@ -111,16 +173,19 @@ class ScrollWheelComponent extends Component {
     }
 
     /**
+     * @param { Menu } menu 
      * @param { number } x 
      * @param { number } y 
      */
-    mousepress(x, y) {
+    mousepress(menu, x, y) {
 
     }
     /**
+     * @param { Menu } menu 
      * @param { string } key 
+     * @param { string } code 
      */
-    keypress(key) {
+    keypress(menu, key, code) {
         if (key === "ArrowUp") {
             this.index = Math.max(this.index - 1, 0);
             return;
@@ -148,6 +213,14 @@ class ScrollWheelComponent extends Component {
         }
 
         this.setY(this.y - yoff / 2);
+    }
+
+    /**
+     * @param { Renderer } r 
+     * @returns 
+     */
+    getButtonSize(r) {
+        return r.textHeight(" ") + this.px / 4;
     }
 }
 
@@ -185,6 +258,7 @@ class Menu {
     mousepress(x, y) {}
     /**
      * @param { string } key 
+     * @param { string } code 
      */
-    keypress(key) {}
+    keypress(key, code) {}
 }

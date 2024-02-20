@@ -21,6 +21,13 @@ class MainMenu extends Menu {
             if (sel === "Play") {
                 this.hidden = true;
                 this.main.menus[1].hidden = false;
+                if (this.main.menus[1] instanceof GameMenu) {
+                    this.main.menus[1].start();
+                }
+            }
+            if (sel === "Settings") {
+                this.hidden = true;
+                this.main.menus[2].hidden = false;
             }
         })
     }
@@ -46,12 +53,13 @@ class MainMenu extends Menu {
      * @param { number } y 
      */
     mousepress(x, y) {
-        this.selwhl.mousepress(x, y);
+        this.selwhl.mousepress(this, x, y);
     }
     /**
      * @param { string } key
+     * @param { string } code
      */
-    keypress(key) {
-        this.selwhl.keypress(key);
+    keypress(key, code) {
+        this.selwhl.keypress(this, key, code);
     }
 }

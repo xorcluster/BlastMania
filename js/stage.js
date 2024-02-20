@@ -2,7 +2,7 @@ class Stage {
     scrollspeed = 0;
     notesize = 0.75;
 
-    chart = new Chart();
+    reversed = true;
 
     /**
      * @param { Main } main 
@@ -15,14 +15,14 @@ class Stage {
         this.canvas = new OffscreenCanvas(640, 480);
         this.renderer = new Renderer(this.canvas.getContext("2d"), 640, 480);
 
-        this.chart.setBPM(128);
-        for (let i = 0; i < 64; i++) {
-            this.chart.addNoteBeat(Math.round(Math.random() * 4), i / 2.0, 0.0);
-        }
-        this.chart.sort();
-
-        this.start = performance.now() + 2000;
     }
+
+    start() {
+        this.main.start = performance.now() + 4000;
+        this.main.playable = true;
+        this.main.controller.chartLoaded();
+    }
+
     resize(width, height) {
         this.canvas.width = width;
         this.canvas.height = height;
@@ -31,9 +31,23 @@ class Stage {
     }
 
     update() {
+        const chart = this.main.chart;
+        const controller = this.main.controller;
+        for (let i = 0; i < 5; i++) {
+            if (controller.index[i] < 0)
+                continue;
 
+            const time = chart.notes[controller.index[i]].time - (performance.now() - this.main.start);
+
+            if (time <= -100) {
+                controller.index[i]++;
+                controller.find(i);
+            }
+        }
     }
     draw() {
+        const chart = this.main.chart;
+
         this.renderer.clear(null);
 
         for (let i = 0; i < 5; i++) {
@@ -45,6 +59,10 @@ class Stage {
 
             let x = width * multiply;
             let y = 0;
+
+            if (this.reversed) {
+                y = this.canvas.height - height * 2;
+            }
 
             const glow = this.main.controller.glow[i] - performance.now();
 
@@ -58,10 +76,14 @@ class Stage {
             this.renderer.popTransform();
         }
 
-        for (let i = 0; i < this.chart.getSize(); i++) {
-            const note = this.chart.notes[i];
-            const time = (note.time) - (performance.now() - this.start);
+        for (let i = 0; i < chart.getSize(); i++) {
+            const note = chart.notes[i];
+            const time = (note.time) - (performance.now() - this.main.start);
+            const lanei = this.main.controller.index[note.lane];
 
+            if (lanei > i || lanei < 0) {
+                continue;
+            }
             if (time > 1000) {
                 break;
             }
@@ -74,6 +96,9 @@ class Stage {
 
             let x = width * multiply;
             let y = (this.canvas.height) * (time / 1000.0);
+            if (this.reversed) {
+                y = (this.canvas.height - height * 2) - y;
+            }
 
             let angle = this.noteskin.getLaneAngle(note.lane);
             

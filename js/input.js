@@ -3,7 +3,13 @@ class Keys {
      * @param { ...string } keys 
      */
     constructor (...keys) {
-        this.keys = keys;
+        const lskeys = localStorage.getItem("blastmania-keys");
+        if (lskeys != null) {
+            this.keys = JSON.parse(lskeys);
+        } else {
+            this.keys = keys;
+            localStorage.setItem("blastmania-keys", JSON.stringify(this.keys));
+        }
     }
 
     /**
@@ -12,6 +18,7 @@ class Keys {
      */
     setKey(index, key) {
         this.keys[index] = key;
+        localStorage.setItem("blastmania-keys", JSON.stringify(this.keys));
     }
 
     /**
@@ -44,7 +51,7 @@ class Input {
      * @param { boolean } repeating
      */
     keypress(key, code, trigger, repeating) {
-        if (!repeating) {
+        if (!repeating && this.main.playable) {
             for (let i = 0; i < Input.keys.getSize(); i++) {
                 if (code === Input.keys.getKey(i)) {
                     this.main.controller.pressed(i, trigger);
@@ -53,7 +60,7 @@ class Input {
             }
         }
         if (trigger) {
-            this.main.menus.forEach((e) => { if (e.hidden) return; e.keypress(key) });
+            this.main.menus.forEach((e) => { if (e.hidden) return; e.keypress(key, code) });
         }
     }
 }

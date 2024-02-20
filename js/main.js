@@ -1,22 +1,68 @@
 document.title = "Blast Mania";
 
 class Controller {
-    constructor() {
+    /**
+     * @param { Main } main 
+     */
+    constructor(main) {
+        this.main = main;
+
         this.down = new Array(5);
         this.glow = new Array(5);
+        this.index = new Array(5);
     }
 
-    hit(index) {
-        this.glow[index] = performance.now() + 250.0;
+    chartLoaded() {
+        for (let i = 0; i < 5; i++) {
+            this.index[i] = 0;
+            this.find(i);
+        }
     }
+
+    /**
+     * @param { number } index 
+     */
+    find(index) {
+        if (this.index[index] < 0)
+            return;
+
+        for (let i = this.index[index]; i < this.main.chart.getSize(); i++) {
+            const note = this.main.chart.notes[i];
+
+            if (note.lane == index) {
+                this.index[index] = i;
+                return;
+            }
+        }
+        this.index[index] = -1;
+    }
+
+    /**
+     * @param { number } index 
+     */
+    hit(index) {
+        if (this.index[index] >= 0) {
+            const note = this.main.chart.notes[this.index[index]];
+            if (Math.abs(note.time - (performance.now() - this.main.start)) < 100) {
+                this.index[index]++;
+                this.find(index);
+                this.glow[index] = performance.now() + 250.0;
+            }
+        }
+    }
+    /**
+     * @param { number } index 
+     * @param { boolean } trigger 
+     */
     pressed(index, trigger) {
         if (trigger)
-            this.glow[index] = performance.now() + 250.0;
+            this.hit(index);
         this.down[index] = trigger;
     }
 }
 class Main {
-    rotation = 0;
+    playable = false;
+    start = 0;
 
     /**
      * @param { number } tickrate 
@@ -39,11 +85,13 @@ class Main {
         this.graphics = this.canvas.getContext('2d');
         this.renderer = new Renderer(this.graphics, this.canvas.width, this.canvas.height);
 
-        this.controller = new Controller();
+        this.controller = new Controller(this);
         this.input = new Input(this);
 
         /** @type { Array<Menu> } */
         this.menus = new Array();
+
+        this.chart = new Chart();
         /** @type { Noteskin } */
         this.noteskin = undefined;
 
@@ -54,12 +102,18 @@ class Main {
     }
 
     init() {
+        this.chart.setBPM(128);
+        for (let i = 0; i < 64; i++) {
+            this.chart.addNoteBeat(Math.round(Math.random() * 4), i / 2.0, 0.0);
+        }
+        this.chart.sort();
+
         this.img_arrow = Main.loadImage("assets/arrow.png");
         this.img_arrow_glow = Main.loadImage("assets/arrow-glow.png");
         this.img_arrow_receptor = Main.loadImage("assets/arrow-receptor.png");
 
         this.noteskin = new Noteskin(
-            [ -90, 0, 0, 90, 180, ],
+            [ -90, 0, 45, 90, 180, ],
             [
                 [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
                 [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
@@ -71,6 +125,7 @@ class Main {
 
         this.menus.push(new MainMenu(this));
         this.menus.push(new GameMenu(this));
+        this.menus.push(new SettingsMenu(this));
         this.menus[0].hidden = false;
 
         this.menus.forEach((e) => { e.resize(this.canvas.width, this.canvas.height) });

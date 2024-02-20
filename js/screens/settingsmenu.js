@@ -250,7 +250,7 @@ class PlayerWidgetComponent extends WidgetComponent {
 
         r.setFont("Arial", 24);
 
-        const ssentence = this.options[this.index[0]];
+        const ssentence = this.options[this.index[0]][0];
         const sheight = r.textHeight(ssentence);
         r.rect(8, 60 + sheight * this.index[0], r.textWidth(ssentence) + 8, sheight + 2, "#fff".concat(this.selected? "f" : "7"));
         r.rect(10, 62 + sheight * this.index[0], r.textWidth(ssentence) + 4, sheight - 2, "#222");

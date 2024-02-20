@@ -11,13 +11,14 @@ class SettingsMenu extends Menu {
             [
                 "Controls",
                 "Display",
-                "Players",
+                "Player",
                 "Misc",
             ],
             64
         );
         this.widgets = [
-            new ControlsWidgetComponent(0, 0, 640, 480)
+            new ControlsWidgetComponent(0, 0, 640, 480),
+            new PlayerWidgetComponent(0, 0, 640, 480),
         ];
 
         this.widgets.forEach((e) => e.hidden = true);
@@ -28,6 +29,11 @@ class SettingsMenu extends Menu {
 
             if (sel === "Controls") {
                 this.widgets[0].hidden = false;
+                this.showingWidget = true;
+                return;
+            }
+            if (sel === "Player") {
+                this.widgets[1].hidden = false;
                 this.showingWidget = true;
                 return;
             }
@@ -148,7 +154,6 @@ class ControlsWidgetComponent extends WidgetComponent {
         for (let i = 0; i < this.options.length; i++) {
             const sentence = this.options[i].concat(": ", this.values[i]);
             const y = 64 + r.textHeight(sentence) * i
-            
 
             r.text(sentence, 12, y, "#fff");
         }
@@ -187,12 +192,38 @@ class ControlsWidgetComponent extends WidgetComponent {
 }
 class PlayerWidgetComponent extends WidgetComponent {
     options = [
+        [
+            "Add",
+
+            "Name",
+            "Icon",
+        ],
+        [
+            "Edit",
+            
+            "Name",
+            "Icon",
+            "Delete"
+        ],
     ]
-    values = [
+    types = [
+        [
+            "none",
+
+            "string",
+            "img"
+        ],
+        [
+            "none",
+
+            "string",
+            "img",
+            "delete"
+        ]
     ]
 
     selected = false;
-    index = 0;
+    index = [0, 0];
 
     /**
      * @param { number } x 
@@ -219,16 +250,15 @@ class PlayerWidgetComponent extends WidgetComponent {
 
         r.setFont("Arial", 24);
 
-        const ssentence = this.options[this.index].concat(": ", this.values[this.index]);
+        const ssentence = this.options[this.index[0]];
         const sheight = r.textHeight(ssentence);
-        r.rect(8, 60 + sheight * this.index, r.textWidth(ssentence) + 8, sheight + 2, "#fff".concat(this.selected? "f" : "7"));
-        r.rect(10, 62 + sheight * this.index, r.textWidth(ssentence) + 4, sheight - 2, "#222");
+        r.rect(8, 60 + sheight * this.index[0], r.textWidth(ssentence) + 8, sheight + 2, "#fff".concat(this.selected? "f" : "7"));
+        r.rect(10, 62 + sheight * this.index[0], r.textWidth(ssentence) + 4, sheight - 2, "#222");
         
         for (let i = 0; i < this.options.length; i++) {
-            const sentence = this.options[i].concat(": ", this.values[i]);
+            const sentence = this.options[i][0];
             const y = 64 + r.textHeight(sentence) * i
             
-
             r.text(sentence, 12, y, "#fff");
         }
     }
@@ -247,11 +277,11 @@ class PlayerWidgetComponent extends WidgetComponent {
                 return;
             }
             if (key === "ArrowUp") {
-                this.index = Math.max(this.index - 1, 0);
+                this.index[0] = Math.max(this.index[0] - 1, 0);
                 return;
             }
             if (key === "ArrowDown") {
-                this.index = Math.min(this.index + 1, this.options.length - 1);
+                this.index[0] = Math.min(this.index[0] + 1, this.options.length - 1);
                 return;
             }
             if (key === "Enter") {

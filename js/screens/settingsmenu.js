@@ -25,8 +25,6 @@ class SettingsMenu extends Menu {
 
         this.optwhl.addEventListener("change", (e) => {
             const sel = e.currentTarget.selection;
-            console.log(sel);
-
             if (sel === "Controls") {
                 this.widgets[0].hidden = false;
                 this.showingWidget = true;
@@ -95,6 +93,7 @@ class SettingsMenu extends Menu {
                 this.hidden = true;
             }
             this.optwhl.keypress(this, key, code);
+            return;
         } else {
             this.widgets.forEach((e) => { if (e.hidden) return; e.keypress(this, key, code) });
         }
@@ -193,37 +192,49 @@ class ControlsWidgetComponent extends WidgetComponent {
 class PlayerWidgetComponent extends WidgetComponent {
     options = [
         [
-            "Add",
-
             "Name",
             "Icon",
         ],
         [
-            "Edit",
-            
             "Name",
             "Icon",
             "Delete"
         ],
+        [
+
+        ]
     ]
     types = [
         [
-            "none",
-
             "string",
-            "img"
+            "image",
         ],
         [
-            "none",
-
             "string",
-            "img",
-            "delete"
+            "image",
+            "button"
+        ],
+        [
+
+        ]
+    ];
+    values = [
+        [
+            "Unknown",
+            "null",
+        ],
+        [
+            "Unknown",
+            "null",
+            null
+        ],
+        [
+
         ]
     ]
 
-    selected = false;
-    index = [0, 0];
+    selected = [ false, false ];
+    index = [ 0, 0 ];
 
     /**
      * @param { number } x 
@@ -234,8 +245,26 @@ class PlayerWidgetComponent extends WidgetComponent {
     constructor(x, y, width, height) {
         super(x, y, width, height);
 
-        for (let i = 0; i < 5; i++) {
-        }
+        this.profilewhl = new ScrollWheelComponent(
+            12, 64,
+            [
+                "Add",
+                "Edit",
+                "Delete",
+            ],
+            24
+        );
+        this.profilewhl.addEventListener("change", (e) => {
+            const sel = e.currentTarget.selection;
+
+            if (sel === "Add") {
+                this.index[0] = 0;
+            }
+            if (sel === "Edit") {
+                this.index[0] = 1;
+            }
+            this.selected[0] = true;
+        })
     }
 
     /**
@@ -246,20 +275,12 @@ class PlayerWidgetComponent extends WidgetComponent {
         super.draw(menu, r);
 
         r.setFont("Arial", 24);
-        r.text("Controls Widget - \"When in doubt, trust the widget.\"", 12, 12, "#fff");
+        r.text("Player Widget - \"When in doubt, trust the widget.\"", 12, 12, "#fff");
 
-        r.setFont("Arial", 24);
-
-        const ssentence = this.options[this.index[0]][0];
-        const sheight = r.textHeight(ssentence);
-        r.rect(8, 60 + sheight * this.index[0], r.textWidth(ssentence) + 8, sheight + 2, "#fff".concat(this.selected? "f" : "7"));
-        r.rect(10, 62 + sheight * this.index[0], r.textWidth(ssentence) + 4, sheight - 2, "#222");
-        
-        for (let i = 0; i < this.options.length; i++) {
-            const sentence = this.options[i][0];
-            const y = 64 + r.textHeight(sentence) * i
-            
-            r.text(sentence, 12, y, "#fff");
+        if (!this.selected[0]) {
+            this.profilewhl.draw(menu, r);
+        } else {
+            let y = 0;
         }
     }
 
@@ -268,25 +289,10 @@ class PlayerWidgetComponent extends WidgetComponent {
      * @param { string } key 
      */
     keypress(menu, key, code) {
-        if (!this.selected) {
-            if (key === "Escape") {
-                if (menu instanceof SettingsMenu) {
-                    menu.showingWidget = false;
-                    this.hidden = true;
-                }
-                return;
-            }
-            if (key === "ArrowUp") {
-                this.index[0] = Math.max(this.index[0] - 1, 0);
-                return;
-            }
-            if (key === "ArrowDown") {
-                this.index[0] = Math.min(this.index[0] + 1, this.options.length - 1);
-                return;
-            }
-            if (key === "Enter") {
-                this.selected = true;
-            }
+        if (!this.selected[0]) {
+            this.profilewhl.keypress(menu, key, code);
+        } else {
+            this.selected[0] = false;
         }
     }
 }

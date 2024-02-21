@@ -16,8 +16,6 @@ class MainMenu extends Menu {
         );
         this.selwhl.addEventListener("change", (e) => {
             const sel = e.currentTarget.selection
-            console.log(sel);
-
             if (sel === "Play") {
                 this.hidden = true;
                 this.main.menus[1].hidden = false;
@@ -61,5 +59,6 @@ class MainMenu extends Menu {
      */
     keypress(key, code) {
         this.selwhl.keypress(this, key, code);
+        
     }
 }

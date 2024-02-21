@@ -1,4 +1,5 @@
 class Component extends EventTarget {
+    highlight = false;
     hidden = false;
 
     /**
@@ -58,6 +59,22 @@ class Component extends EventTarget {
     }
 }
 
+class ButtonComponent extends Component {
+    constructor(x, y, width, height, name) {
+        super(x, y, "Button");
+    }
+}
+class ImageComponent extends Component {
+    constructor(x, y, width, height, image) {
+        super(x, y, "Image");
+    }
+}
+class TextboxComponent extends Component {
+    constructor(x, y, width, height, value) {
+        super(x, y, "Textbox");
+    }
+}
+
 class WidgetComponent extends Component {
     /**
      * @param { number } x 
@@ -114,7 +131,6 @@ class WidgetComponent extends Component {
         this.y -= this.height / 2;
     }
 }
-
 class ScrollWheelComponent extends Component {
     selection = undefined;
     index = 0;

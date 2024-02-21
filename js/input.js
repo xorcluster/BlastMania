@@ -60,7 +60,7 @@ class Input {
             }
         }
         if (trigger) {
-            this.main.menus.forEach((e) => { if (e.hidden) return; e.keypress(key, code) });
+            this.main.menus.forEach((e) => { if (e.hidden) return; e.keypress(key, code); });
         }
     }
 }

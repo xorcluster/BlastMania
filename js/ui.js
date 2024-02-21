@@ -62,16 +62,50 @@ class Component extends EventTarget {
 class ButtonComponent extends Component {
     constructor(x, y, width, height, name) {
         super(x, y, "Button");
+        this.width = width;
+        this.height = height;
+
+        this.name = name;
     }
 }
 class ImageComponent extends Component {
     constructor(x, y, width, height, image) {
         super(x, y, "Image");
+        this.width = width;
+        this.height = height;
+
+        this.image = image;
     }
 }
 class TextboxComponent extends Component {
-    constructor(x, y, width, height, value) {
+    constructor(x, y, width, height, name, value) {
         super(x, y, "Textbox");
+        this.width = width;
+        this.height = height;
+
+        this.name = name;
+        this.value = value;
+    }
+
+    /**
+     * @param { Menu } menu 
+     */
+    update(menu) {}
+    /**
+     * @param { Menu } menu 
+     * @param { Renderer } r 
+     */
+    draw(menu, r) {
+        
+    }
+
+    /**
+     * @param { Menu } menu 
+     * @param { string } key 
+     * @param { string } code 
+     */
+    keypress(menu, key, code) {
+
     }
 }
 

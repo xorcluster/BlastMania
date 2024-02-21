@@ -103,8 +103,16 @@ class Main {
 
     init() {
         this.chart.setBPM(128);
-        for (let i = 0; i < 64; i++) {
-            this.chart.addNoteBeat(Math.round(Math.random() * 4), i / 2.0, 0.0);
+        let pos = 0;
+        for (let i = 0; i < 1024; i++) {
+            pos += (Math.round(Math.random()) * 2) - 1;
+            if (pos < 0) {
+                pos = 4;
+            } else if (pos > 4) {
+                pos = 0;
+            }
+
+            this.chart.addNoteBeat(pos, i / 6.0, 0.0);
         }
         this.chart.sort();
 
@@ -154,6 +162,10 @@ class Main {
             if (e.hidden) return; e.draw();
             this.renderer.drawImage(e.canvas, 0, 0, this.canvas.width, this.canvas.height)
         });
+
+        this.graphics.filter = `hue-rotate(${Math.round(performance.now() * (180 / 4000)) - 180}grad)`;
+        this.renderer.drawImage(this.img_arrow, 0, 0, 128, 128);
+        this.graphics.filter = `hue-rotate(0)`;
     }
 
     /**

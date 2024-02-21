@@ -60,21 +60,86 @@ class Component extends EventTarget {
 }
 
 class ButtonComponent extends Component {
-    constructor(x, y, width, height, name) {
-        super(x, y, "Button");
-        this.width = width;
-        this.height = height;
+    triggered = false;
 
+    /**
+     * @param { number } x 
+     * @param { number } y 
+     * @param { number } px 
+     * @param { string } name 
+     */
+    constructor(x, y, px, name) {
+        super(x, y, "Button");
+        this.px = px;
         this.name = name;
+    }
+
+    /**
+     * @param { Menu } menu 
+     * @param { Renderer } r 
+     */
+    draw(menu, r) {
+        r.setFont("Arial", this.px);
+
+        const width1 = r.textWidth(this.name);
+        const width2 = r.textWidth(this.name + " ");
+
+        const height = r.textHeight(this.name) + this.px / 4;
+
+        if (this.highlight) {
+            r.rect(0, 0, width1, height, "#fff");
+            r.rect(2, 2, width1 - 4, height - 4, "#222");
+        } else {
+            r.rect(this.x, this.y, width1, height, "#222");
+        }
+
+        r.text(this.name, this.x, this.y + this.px / 4, "#fff");
+    }
+
+    /**
+     * @param { Menu } menu 
+     * @param { string } key 
+     * @param { string } code 
+     */
+    keypress(menu, key, code) {
+        if (this.highlight) {
+            if (key === "Enter") {
+                this.triggered = !this.triggered;
+            }
+        }
     }
 }
 class ImageComponent extends Component {
     constructor(x, y, width, height, image) {
         super(x, y, "Image");
-        this.width = width;
+        this.width = width
         this.height = height;
 
         this.image = image;
+    }
+
+    /**
+     * @param { Menu } menu 
+     * @param { Renderer } r 
+     */
+    draw(menu, r) {
+        r.pushTransform(this.x, this.y, 0);
+        r.rect(0, 0, this.width, this.height);
+        r.drawImage(this.image, 1, 1, this.width - 2, this.height - 2);
+        r.popTransform();
+    }
+
+    /**
+     * @param { Menu } menu 
+     * @param { string } key 
+     * @param { string } code 
+     */
+    keypress(menu, key, code) {
+        if (this.highlight) {
+            if (key === "Enter") {
+                Main.loadFile()
+            }
+        }
     }
 }
 class TextboxComponent extends Component {
@@ -165,10 +230,25 @@ class WidgetComponent extends Component {
         this.y -= this.height / 2;
     }
 }
+class ScrollGroupComponent extends Component {
+    selection = undefined;
+    index = 0;
+
+    /**
+     * 
+     * @param {*} x 
+     * @param {*} y 
+     * @param {*} options 
+     */
+    constructor(x, y, options) {
+        super(x, y, "Scroll Group");
+
+        this.options = options;
+    }
+}
 class ScrollWheelComponent extends Component {
     selection = undefined;
     index = 0;
-    timer = 0;
 
     /**
      * @param { number } x

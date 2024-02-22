@@ -9,6 +9,18 @@ class Player {
         this.icon = new OffscreenCanvas(256, 256);
         this.exp = exp;
 
-        this.icon.getContext("2d").drawImage(icon, 0, 0, 256, 256);
+        this.icongraphics = this.icon.getContext("2d");
+        this.icongraphics.imageSmoothingEnabled = false;
+
+        this.setIcon(icon);
+    }
+
+    /**
+     * @param { HTMLImageElement } icon 
+     */
+    setIcon(icon) {
+        this.icongraphics.clearRect(0, 0, 256, 256);
+        this.icongraphics.drawImage(icon, 0, 0, 256, 256);
+        this.icongraphics.commit();
     }
 }

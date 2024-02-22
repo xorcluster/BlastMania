@@ -1,8 +1,10 @@
 class Stage {
     scrollspeed = 0;
-    notesize = 0.75;
+    notesize = 0.8;
 
     reversed = true;
+
+    clearAlpha = 1.0;
 
     /**
      * @param { Main } main 
@@ -48,7 +50,7 @@ class Stage {
     draw() {
         const chart = this.main.chart;
 
-        this.renderer.clear(null);
+        this.renderer.clear(`rgb(255, 255, 255, ${Math.round(this.clearAlpha * 100)}%)`);
 
         for (let i = 0; i < 5; i++) {
             const dimensions = this.noteskin.getNoteDimensions(i, 2);
@@ -67,10 +69,10 @@ class Stage {
             const glow = this.main.controller.glow[i] - performance.now();
 
             this.renderer.pushTransform(x + this.canvas.width / 2, y + height, this.noteskin.getLaneAngle(i));
-            this.renderer.drawImage(this.noteskin.getLaneTexture(i, 2), -width / 2, -height / 2, width, height);
+            this.renderer.drawImageScaled(this.noteskin.getLaneTexture(i, 2), -width / 2, -height / 2, width, height);
             if (glow > 0) {
                 this.renderer.graphics.globalAlpha = Math.max(glow, 0) / 250.0;
-                this.renderer.drawImage(this.noteskin.getLaneTexture(i, 1), -width / 2, -height / 2, width, height);
+                this.renderer.drawImageScaled(this.noteskin.getLaneTexture(i, 1), -width / 2, -height / 2, width, height);
                 this.renderer.graphics.globalAlpha = 1.0;
             }
             this.renderer.popTransform();
@@ -103,7 +105,7 @@ class Stage {
             let angle = this.noteskin.getLaneAngle(note.lane);
             
             this.renderer.pushTransform(x + this.canvas.width / 2, y + height, angle);
-            this.renderer.drawImage(this.noteskin.getLaneTexture(note.lane, 0), -width / 2, -height / 2, width, height);
+            this.renderer.drawImageScaled(this.noteskin.getLaneTexture(note.lane, 0), -width / 2, -height / 2, width, height);
             this.renderer.popTransform();
 
             /*if (note.length > 0) {

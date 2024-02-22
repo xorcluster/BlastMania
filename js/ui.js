@@ -1,5 +1,6 @@
 class Component extends EventTarget {
     highlight = false;
+    selected = false;
     hidden = false;
 
     /**
@@ -86,14 +87,16 @@ class ButtonComponent extends Component {
 
         const height = r.textHeight(this.name) + this.px / 4;
 
+        r.pushTransform(this.x, this.y, 0);
         if (this.highlight) {
             r.rect(0, 0, width1, height, "#fff");
-            r.rect(2, 2, width1 - 4, height - 4, "#222");
+            r.rect(1, 1, width1 - 2, height - 2, "#222");
         } else {
-            r.rect(this.x, this.y, width1, height, "#222");
+            r.rect(0, 0, width1, height, "#222");
         }
 
-        r.text(this.name, this.x, this.y + this.px / 4, "#fff");
+        r.text(this.name, 0, this.px / 4, "#fff");
+        r.popTransform();
     }
 
     /**
@@ -102,14 +105,25 @@ class ButtonComponent extends Component {
      * @param { string } code 
      */
     keypress(menu, key, code) {
-        if (this.highlight) {
+        if (this.selected) {
             if (key === "Enter") {
                 this.triggered = !this.triggered;
+                this.selected = false;
+
+                let event = document.createEvent("CustomEvent");
+                this.dispatchEvent(new Event("pressed", event));
             }
         }
     }
 }
 class ImageComponent extends Component {
+    /**
+     * @param { number } x 
+     * @param { number } y 
+     * @param { number } width 
+     * @param { number } height 
+     * @param { HTMLImageElement } image 
+     */
     constructor(x, y, width, height, image) {
         super(x, y, "Image");
         this.width = width
@@ -124,8 +138,11 @@ class ImageComponent extends Component {
      */
     draw(menu, r) {
         r.pushTransform(this.x, this.y, 0);
-        r.rect(0, 0, this.width, this.height);
-        r.drawImage(this.image, 1, 1, this.width - 2, this.height - 2);
+        if (this.highlight) {
+            r.rect(0, 0, this.width, this.height, "#fff");
+        }
+        r.rect(1, 1, this.width - 2, this.height - 2, "#222");
+        r.drawImageScaled(this.image, 1, 1, this.width - 2, this.height - 2);
         r.popTransform();
     }
 
@@ -135,19 +152,36 @@ class ImageComponent extends Component {
      * @param { string } code 
      */
     keypress(menu, key, code) {
-        if (this.highlight) {
+        if (this.selected) {
             if (key === "Enter") {
-                Main.loadFile()
+                Main.loadFile((path) => {
+                    this.image.width = this.width;
+                    this.image.height = this.height;
+                    this.image.src = path;
+                });
+
+                this.selected = false;
+
+                let event = document.createEvent("CustomEvent");
+                this.dispatchEvent(new Event("change", event));
             }
         }
     }
 }
 class TextboxComponent extends Component {
-    constructor(x, y, width, height, name, value) {
-        super(x, y, "Textbox");
-        this.width = width;
-        this.height = height;
+    finish = 0;
 
+    /**
+     * @param { number } x 
+     * @param { number } y 
+     * @param { number } px 
+     * @param { string } name 
+     * @param { string } value 
+     */
+    constructor(x, y, px, name, value) {
+        super(x, y, "Textbox");
+
+        this.px = px;
         this.name = name;
         this.value = value;
     }
@@ -161,7 +195,22 @@ class TextboxComponent extends Component {
      * @param { Renderer } r 
      */
     draw(menu, r) {
+        r.pushTransform(this.x, this.y, 0);
+        r.setFont("Arial", this.px);
+
+        const sentence = this.name.concat(": ", this.value);
+        const width = r.textWidth(sentence);
+        const height = r.textHeight(sentence) + this.px / 4;
+
+        if (this.highlight) {
+            r.rect(0, 0, width, height, "#fff");
+            r.rect(1, 1, width - 2, height - 2, "#222");
+        } else {
+            r.rect(0, 0, width, height, "#222");
+        }
+        r.text(sentence, 0, this.px / 4, "#fff");
         
+        r.popTransform();
     }
 
     /**
@@ -170,7 +219,21 @@ class TextboxComponent extends Component {
      * @param { string } code 
      */
     keypress(menu, key, code) {
+        if (key === "Enter") {
+            this.finish++;
+            if (this.finish > 1) {
+                this.selected = false;
+                this.finish = 0;
+            }
+            return;
+        }
+        if (key === "Backspace") {
+            this.value = this.value.substring(0, this.value.length - 1);
+            return;
+        }
+        if (key.length > 1) return;
 
+        this.value = this.value.concat(key);
     }
 }
 
@@ -236,14 +299,52 @@ class ScrollGroupComponent extends Component {
 
     /**
      * 
-     * @param {*} x 
-     * @param {*} y 
-     * @param {*} options 
+     * @param { number } x 
+     * @param { number } y 
+     * @param { Array<Component> } components 
      */
-    constructor(x, y, options) {
+    constructor(x, y, components) {
         super(x, y, "Scroll Group");
 
-        this.options = options;
+        this.components = components;
+        this.components[0].highlight = true;
+    }
+
+    /**
+     * @param { Menu } menu 
+     * @param { Renderer } r 
+     */
+    draw(menu, r) {
+        r.pushTransform(this.x, this.y);
+        this.components.forEach(e => { if (e.hidden) return; e.draw(menu, r) });
+        r.popTransform();
+    }
+
+    /**
+     * @param { Menu } menu 
+     * @param { string } key 
+     * @param { string } code 
+     */
+    keypress(menu, key, code) {
+        if (this.components[this.index].selected) {
+            this.components[this.index].keypress(menu, key, code);
+            return;
+        }
+
+        if (key === "Enter") {
+            this.components[this.index].selected = true;
+            this.components[this.index].keypress(menu, key, code);
+        }
+        if (key === "ArrowUp") {
+            this.components[this.index].highlight = false;
+            this.index = Math.max(this.index - 1, 0);
+            this.components[this.index].highlight = true;
+        }
+        if (key === "ArrowDown") {
+            this.components[this.index].highlight = false;
+            this.index = Math.min(this.index + 1, this.components.length - 1);
+            this.components[this.index].highlight = true;
+        }
     }
 }
 class ScrollWheelComponent extends Component {
@@ -325,9 +426,9 @@ class ScrollWheelComponent extends Component {
             return;
         }
         if (key === "Enter") {
-            let event = document.createEvent("CustomEvent");
             this.selection = this.options[this.index];
 
+            let event = document.createEvent("CustomEvent");
             this.dispatchEvent(new Event("change", event));
         }
     }

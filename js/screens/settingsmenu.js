@@ -18,7 +18,7 @@ class SettingsMenu extends Menu {
         );
         this.widgets = [
             new ControlsWidgetComponent(0, 0, 640, 480),
-            new PlayerWidgetComponent(0, 0, 640, 480),
+            new PlayerWidgetComponent(this, 0, 0, 640, 480),
         ];
 
         this.widgets.forEach((e) => e.hidden = true);
@@ -116,7 +116,7 @@ class ControlsWidgetComponent extends WidgetComponent {
         "undefined",
     ]
 
-    selected = false;
+    oselected = false;
     index = 0;
 
     /**
@@ -163,7 +163,7 @@ class ControlsWidgetComponent extends WidgetComponent {
      * @param { string } key 
      */
     keypress(menu, key, code) {
-        if (!this.selected) {
+        if (!this.oselected) {
             if (key === "Escape") {
                 if (menu instanceof SettingsMenu) {
                     menu.showingWidget = false;
@@ -185,64 +185,33 @@ class ControlsWidgetComponent extends WidgetComponent {
         } else {
             Input.keys.setKey(this.index, code);
             this.values[this.index] = code;
-            this.selected = false;
+            this.oselected = false;
         }
     }
 }
 class PlayerWidgetComponent extends WidgetComponent {
     options = [
-        [
-            "Name",
-            "Icon",
-        ],
-        [
-            "Name",
-            "Icon",
-            "Delete"
-        ],
-        [
-
-        ]
-    ]
-    types = [
-        [
-            "string",
-            "image",
-        ],
-        [
-            "string",
-            "image",
-            "button"
-        ],
-        [
-
-        ]
-    ];
-    values = [
-        [
-            "Unknown",
-            "null",
-        ],
-        [
-            "Unknown",
-            "null",
-            null
-        ],
-        [
-
-        ]
+        new ScrollGroupComponent(
+            12, 64,
+            [
+                new TextboxComponent(0, 0, 24, "Name", "Unknown"),
+                new ImageComponent(0, 36, 258, 258, Main.loadImage("./assets/arrow.png")),
+                new ButtonComponent(0, 296, 24, "Create")
+            ]
+        )
     ]
 
-    selected = [ false, false ];
-    index = [ 0, 0 ];
+    oselected = false;
+    index = 0;
 
     /**
+     * @param { Menu } menu 
      * @param { number } x 
      * @param { number } y 
      * @param { number } width 
      * @param { number } height 
      */
-    constructor(x, y, width, height) {
+    constructor(menu, x, y, width, height) {
         super(x, y, width, height);
 
         this.profilewhl = new ScrollWheelComponent(
@@ -258,12 +227,26 @@ class PlayerWidgetComponent extends WidgetComponent {
             const sel = e.currentTarget.selection;
 
             if (sel === "Add") {
-                this.index[0] = 0;
+                this.index = 0;
             }
             if (sel === "Edit") {
-                this.index[0] = 1;
+                this.index = 1;
             }
-            this.selected[0] = true;
+            this.oselected = true;
+        });
+
+        this.options[0].components[2].addEventListener("pressed", (e) => {
+            console.log("Trying to create a player");
+
+            // WARNING: this piece of code is decently unsafe.
+            menu.main.players.push(new Player(
+                this.options[0].components[0].value,
+                this.options[0].components[1].image
+            ));
+            this.oselected = false;
+            this.index = 0;
+
+            console.log("Created player.");
         })
     }
 
@@ -277,10 +260,26 @@ class PlayerWidgetComponent extends WidgetComponent {
         r.setFont("Arial", 24);
         r.text("Player Widget - \"When in doubt, trust the widget.\"", 12, 12, "#fff");
 
-        if (!this.selected[0]) {
+        if (!this.oselected) {
             this.profilewhl.draw(menu, r);
-        } else {
+
+            r.setFont("Arial", 16);
+
+            const players = menu.main.players;
+
             let y = 0;
+            for (let i = 0; i < players.length; i++) {
+                let x = r.textWidth(players[i].name) + 36;
+
+                const height = r.textHeight(players[i].name);
+
+                r.text(players[i].name, this.width - 12 - x, 64 + y + (32 - height) / 2, "#fff");
+                r.drawImageScaled(players[i].icon, this.width - 42, 64 + y, 32, 32);
+
+                y += 34;
+            }
+        } else {
+            this.options[this.index].draw(menu, r);
         }
     }
 
@@ -289,10 +288,20 @@ class PlayerWidgetComponent extends WidgetComponent {
      * @param { string } key 
      */
     keypress(menu, key, code) {
-        if (!this.selected[0]) {
+        if (key === "Escape") {
+            this.index = 0;
+            this.oselected = false;
+            
+            this.hidden = true;
+            if (menu instanceof SettingsMenu) {
+                menu.showingWidget = false;
+            }
+        }
+
+        if (!this.oselected) {
             this.profilewhl.keypress(menu, key, code);
         } else {
-            this.selected[0] = false;
+            this.options[this.index].keypress(menu, key, code);
         }
     }
 }

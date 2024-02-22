@@ -74,6 +74,7 @@ class Renderer {
     resize(width, height) {
         this.width = width;
         this.height = height;
+        this.graphics.imageSmoothingEnabled = false;
     }
 
     /**
@@ -164,14 +165,24 @@ class Renderer {
     restore() {
         this.graphics.restore();
     }
+
+    /**
+     * @param { HTMLImageElement } img 
+     * @param { number } x 
+     * @param { number } y
+     */
+    drawImage(img, x, y) {
+        this.graphics.drawImage(img, Math.round(x), Math.round(y));
+    }
+
     /**
      * @param { HTMLImageElement } img 
      * @param { number } x 
      * @param { number } y 
-     * @param { number } sx 
-     * @param { number } sy 
+     * @param { number } w 
+     * @param { number } h 
      */
-    drawImage(img, x, y, w, h) {
-        this.graphics.drawImage(img, x, y, w, h);
+    drawImageScaled(img, x, y, w, h) {
+        this.graphics.drawImage(img, Math.round(x), Math.round(y), Math.round(w), Math.round(h));
     }
 }

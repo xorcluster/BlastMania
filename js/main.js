@@ -1,5 +1,6 @@
 document.title = "Blast Mania";
 
+// The controller handles inputs and animations.
 class Controller {
     /**
      * @param { Main } main 
@@ -60,6 +61,8 @@ class Controller {
         this.down[index] = trigger;
     }
 }
+
+// The Main class is the main part of Blast-Mania.
 class Main {
     playable = false;
     start = 0;
@@ -70,6 +73,7 @@ class Main {
     constructor(tickrate) {
         this.tickrate = tickrate;
 
+        // Setting up the canvas to draw stuff.
         this.canvas = document.createElement("canvas");
         
         this.canvas.width = innerWidth;
@@ -82,21 +86,31 @@ class Main {
 
         document.body.appendChild(this.canvas);
 
+        // Graphics classes.
         this.graphics = this.canvas.getContext('2d');
         this.renderer = new Renderer(this.graphics, this.canvas.width, this.canvas.height);
 
+        // Input classes.
         this.controller = new Controller(this);
         this.input = new Input(this);
 
+        // Creating the menu list.
         /** @type { Array<Menu> } */
         this.menus = new Array();
 
+        // Creating the chart (without any metadata of course).
         this.chart = new Chart();
         /** @type { Noteskin } */
         this.noteskin = undefined;
 
+        // Creating the players list for each profile saved.
+        /** @type { Array<Player> } */
+        this.players = new Array(0);
+
+        // Checks for a resize, then acts accordingly.
         window.addEventListener("resize", () => this.resize(innerWidth, innerHeight));
 
+        // Key inputs.
         document.addEventListener("keydown", (e) => this.input.keypress(e.key, e.code, true, e.repeat));
         document.addEventListener("keyup", (e) => this.input.keypress(e.key, e.code, false, false));
     }
@@ -155,17 +169,12 @@ class Main {
     }
 
     draw() {
-		this.graphics.fillStyle = "#fff";
-        this.graphics.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		this.renderer.clear(null)
 
         this.menus.forEach((e) => {
             if (e.hidden) return; e.draw();
-            this.renderer.drawImage(e.canvas, 0, 0, this.canvas.width, this.canvas.height)
+            this.renderer.drawImage(e.canvas, 0, 0);
         });
-
-        this.graphics.filter = `hue-rotate(${Math.round(performance.now() * (180 / 4000)) - 180}grad)`;
-        this.renderer.drawImage(this.img_arrow, 0, 0, 128, 128);
-        this.graphics.filter = `hue-rotate(0)`;
     }
 
     /**
@@ -190,7 +199,10 @@ class Main {
         return image;
     }
 
-    static loadFile() {
+    /**
+     * @param { Function } func 
+     */
+    static loadFile(func) {
         const openFile = document.createElement("input");
         openFile.type = "file";
         openFile.click();
@@ -198,7 +210,7 @@ class Main {
         openFile.addEventListener("change", (e) => {
             let fr = new FileReader();
             fr.addEventListener("load", (e) => {
-                return fr.result;
+                func(fr.result);
             });
             fr.readAsDataURL(openFile.files.item(0));
         });
@@ -213,10 +225,14 @@ class Main {
     }
 }
 
+// Creating a Main class with a tickrate of 64.
 const _main = new Main(64);
 
+// Creating a text variable and drawing it to indicate to the player to click the frame.
 let text = "Click the frame to start Blast-Mania!";
 _main.graphics.fillText(text, _main.canvas.width / 2 - _main.graphics.measureText(text).width / 2, _main.canvas.height / 2);
+
+// This is called once the event listener calls the handler.
 function start() {
     document.removeEventListener("mousedown", start);
     _main.init();

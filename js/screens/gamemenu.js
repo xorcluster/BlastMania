@@ -25,7 +25,7 @@ class GameMenu extends Menu {
         this.renderer.clear(null);
 
         this.stage.draw();
-        this.renderer.drawImage(this.stage.canvas, 0, 0, this.canvas.width, this.canvas.height);
+        this.renderer.drawImage(this.stage.canvas, 0, 0);
     }
 
     /**

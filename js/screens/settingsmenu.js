@@ -228,11 +228,8 @@ class PlayerWidgetComponent extends WidgetComponent {
 
             if (sel === "Add") {
                 this.index = 0;
+                this.oselected = true;
             }
-            if (sel === "Edit") {
-                this.index = 1;
-            }
-            this.oselected = true;
         });
 
         this.options[0].components[2].addEventListener("pressed", (e) => {

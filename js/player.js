@@ -21,6 +21,5 @@ class Player {
     setIcon(icon) {
         this.icongraphics.clearRect(0, 0, 256, 256);
         this.icongraphics.drawImage(icon, 0, 0, 256, 256);
-        this.icongraphics.commit();
     }
 }

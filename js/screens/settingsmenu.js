@@ -180,7 +180,7 @@ class ControlsWidgetComponent extends WidgetComponent {
                 return;
             }
             if (key === "Enter") {
-                this.selected = true;
+                this.oselected = true;
             }
         } else {
             Input.keys.setKey(this.index, code);

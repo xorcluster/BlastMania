@@ -396,7 +396,13 @@ class ScrollWheelComponent extends Component {
 
             const y = r.textHeight(option) + this.px / 4;
 
-            r.rect(0, yoff, width1, y, i == this.index? "#000c" : "#0008");
+            if (i == this.index) {
+                r.rect(0, yoff, width1, y, "#fff");
+                r.rect(2, yoff + 2, width1 - 4, y - 4, "#222");
+            } else {
+                r.rect(0, yoff, width1, y, "#2227");
+            }
+
             r.text(option, (width1 - width) / 2, yoff + this.px / 4, "#ffff");
             yoff += y;
         }

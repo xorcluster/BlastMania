@@ -87,4 +87,7 @@ class Chart {
     getSize() {
         return this.notes.length
     }
+
+    static loadChart(text) {
+    }
 }

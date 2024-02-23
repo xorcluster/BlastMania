@@ -257,6 +257,11 @@ _main.graphics.fillText(text, _main.canvas.width / 2 - _main.graphics.measureTex
 
 // This is called once the event listener calls the handler.
 function start() {
+    Main.loadFile((url) => {
+        console.log(url);
+        console.log(atob(url.substring(url.indexOf(',') + 1, url.length)));
+    });
+    
     document.removeEventListener("mousedown", start);
     _main.init();
 

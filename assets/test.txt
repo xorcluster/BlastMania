@@ -1,0 +1,6 @@
+.title=Title
+.artist=xorcluster
+.author=xorcluster
+.audio=null
+.bpm=180
+.endmeta

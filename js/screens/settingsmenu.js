@@ -179,6 +179,7 @@ class ControlsWidgetComponent extends WidgetComponent {
                 this.index = Math.min(this.index + 1, this.options.length - 1);
                 return;
             }
+            
             if (key === "Enter") {
                 this.oselected = true;
             }
@@ -202,7 +203,10 @@ class PlayerWidgetComponent extends WidgetComponent {
     ]
 
     oselected = false;
-    index = 0;
+    pselected = false;
+    
+    oindex = 0;
+    pindex = 0;
 
     /**
      * @param { Menu } menu 
@@ -227,8 +231,14 @@ class PlayerWidgetComponent extends WidgetComponent {
             const sel = e.currentTarget.selection;
 
             if (sel === "Add") {
-                this.index = 0;
+                this.oindex = 0;
                 this.oselected = true;
+            }
+            if (sel === "Delete") {
+                if (menu.main.playerList.length > 0) {
+                    menu.main.playerList.splice(menu.main.playerIndex, 1);
+                    menu.main.updatePlayers();
+                }
             }
         });
 
@@ -236,10 +246,11 @@ class PlayerWidgetComponent extends WidgetComponent {
             console.log("Trying to create a player");
 
             // WARNING: this piece of code is decently unsafe.
-            menu.main.players.push(new Player(
+            menu.main.playerList.push(new Player(
                 this.options[0].components[0].value,
                 this.options[0].components[1].image
             ));
+            menu.main.updatePlayers();
             this.oselected = false;
             this.index = 0;
 
@@ -262,7 +273,8 @@ class PlayerWidgetComponent extends WidgetComponent {
 
             r.setFont("Arial", 16);
 
-            const players = menu.main.players;
+            const players = menu.main.playerList;
+            const plselected = menu.main.playerIndex;
 
             let y = 0;
             for (let i = 0; i < players.length; i++) {
@@ -270,13 +282,25 @@ class PlayerWidgetComponent extends WidgetComponent {
 
                 const height = r.textHeight(players[i].name);
 
+                if (this.pselected || plselected == i) {
+                    let color = "#0000";
+                    if (this.pindex == i) {
+                        color = "#fff";
+                    } else if (plselected == i) {
+                        color = "#fff7";
+                    }
+
+                    r.rect(this.width - 12 - x - 1, 64 + y - 2, x + 4, 35, color);
+                    r.rect(this.width - 12 - x, 64 + y - 1, x + 2, 33, "#222");
+                }
+                
                 r.text(players[i].name, this.width - 12 - x, 64 + y + (32 - height) / 2, "#fff");
                 r.drawImageScaled(players[i].icon, this.width - 42, 64 + y, 32, 32);
 
                 y += 34;
             }
         } else {
-            this.options[this.index].draw(menu, r);
+            this.options[this.oindex].draw(menu, r);
         }
     }
 
@@ -294,11 +318,34 @@ class PlayerWidgetComponent extends WidgetComponent {
                 menu.showingWidget = false;
             }
         }
-
         if (!this.oselected) {
-            this.profilewhl.keypress(menu, key, code);
+            if (key === "ArrowRight") {
+                if (menu.main.playerList.length > 0) {
+                    this.profilewhl.index = -1;
+                    this.pselected = true;
+                }
+            }
+            if (key === "ArrowLeft") {
+                this.profilewhl.index = 0;
+                this.pselected = false;
+            }
+
+            if (this.pselected) {
+                if (key === "ArrowUp") {
+                    this.pindex = Math.max(this.pindex - 1, 0);
+                }
+                if (key === "ArrowDown") {
+                    this.pindex = Math.min(this.pindex + 1, menu.main.playerList.length - 1);
+                }
+
+                if (key === "Enter") {
+                    menu.main.playerIndex = this.pindex;
+                }
+            } else {
+                this.profilewhl.keypress(menu, key, code);
+            }
         } else {
-            this.options[this.index].keypress(menu, key, code);
+            this.options[this.oindex].keypress(menu, key, code);
         }
     }
 }

@@ -105,7 +105,8 @@ class Main {
 
         // Creating the players list for each profile saved.
         /** @type { Array<Player> } */
-        this.players = new Array(0);
+        this.playerList = new Array(0);
+        this.playerIndex = 0;
 
         // Checks for a resize, then acts accordingly.
         window.addEventListener("resize", () => this.resize(innerWidth, innerHeight));
@@ -130,9 +131,21 @@ class Main {
         }
         this.chart.sort();
 
-        this.img_arrow = Main.loadImage("assets/arrow.png");
-        this.img_arrow_glow = Main.loadImage("assets/arrow-glow.png");
-        this.img_arrow_receptor = Main.loadImage("assets/arrow-receptor.png");
+        let storedPlayers = localStorage.getItem("blastmania-players");
+        if (storedPlayers != null) {
+            storedPlayers = JSON.parse(storedPlayers);
+            storedPlayers.forEach(e => {
+                console.log(e);
+
+                let player = Player.loadPlayer(e.name, e.icon, e.exp);
+                this.playerList.push(player);
+                console.log(player);
+            });
+        }
+
+        this.img_arrow = Main.loadImage("./assets/arrow.png");
+        this.img_arrow_glow = Main.loadImage("./assets/arrow-glow.png");
+        this.img_arrow_receptor = Main.loadImage("./assets/arrow-receptor.png");
 
         this.noteskin = new Noteskin(
             [ -90, 0, 45, 90, 180, ],
@@ -151,6 +164,19 @@ class Main {
         this.menus[0].hidden = false;
 
         this.menus.forEach((e) => { e.resize(this.canvas.width, this.canvas.height) });
+    }
+
+    updatePlayers() {
+        let data = [];
+        this.playerList.forEach(e => {
+            data.push({
+                name: e.name,
+                icon: e.iconsrc,
+                exp: e.exp
+            });
+        });
+        console.log(data);
+        Main.storeInfo("players", JSON.stringify(data));
     }
 
     /**
@@ -191,10 +217,7 @@ class Main {
      */
     static loadImage(path) {
         const image = new Image();
-        if (!path.startsWith("data:"))
-            image.src = "./".concat(path);
-        else
-            image.src = path;
+        image.src = path;
 
         return image;
     }

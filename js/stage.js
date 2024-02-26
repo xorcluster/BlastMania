@@ -1,6 +1,6 @@
 class Stage {
-    scrollspeed = 0;
-    notesize = 0.8;
+    scrollspeed = 1.75;
+    notesize = 0.6;
 
     reversed = true;
 
@@ -20,9 +20,11 @@ class Stage {
     }
 
     start() {
-        this.main.start = performance.now() + 4000;
+        this.main.start = performance.now() + 2000;
         this.main.playable = true;
         this.main.controller.chartLoaded();
+
+        this.main.noteskin.storeInstances(this.notesize);
     }
 
     resize(width, height) {
@@ -49,13 +51,16 @@ class Stage {
                     controller.glow[i] = performance.now() + 250.0;
 
                     controller.holding[i] = false;
+                    controller.judgement = 0;
+
                     break;
                 }
             }
 
-            if (time <= -100) {
+            if (time <= -Input.judgements.getMiss()) {
                 controller.index[i]++;
                 controller.find(i);
+                controller.judgement = Input.judgements.jtimes.length - 1;
             }
         }
     }
@@ -109,7 +114,7 @@ class Stage {
             const multiply = note.lane - 2;
 
             let x = width * multiply;
-            let y = (this.canvas.height) * (time / 1000.0);
+            let y = (this.canvas.height) * (time / 1000.0) * this.scrollspeed;
             if (this.main.controller.holding[note.lane] && lanei == i) {
                 y = Math.max(y, 0);
             }
@@ -130,16 +135,20 @@ class Stage {
                 const leheight = ledimensions[1];
 
                 let oldY = y;
-                y = (this.canvas.height) * ((time + note.length) / 1000.0);
+                y = (this.canvas.height) * ((time + note.length) / 1000.0) * this.scrollspeed;
                 if (this.reversed) {
                     y = (this.canvas.height - height * 2) - y;
                 }
 
-                this.renderer.pushTransform(x + this.canvas.width / 2, oldY + height, this.reversed? 0 : Math.PI);
-                this.renderer.drawImageScaled(this.noteskin.getLaneInstanceTexture(note.lane, 4), -lewidth / 2, -leheight / 2, lbwidth, Math.floor(y - oldY));
+                this.renderer.pushTransform(x + this.canvas.width / 2, oldY + height + (this.reversed? lbheight / 2 : 0), 0);
+                this.renderer.drawImageScaled(this.noteskin.getLaneInstanceTexture(note.lane, 3), -lewidth / 2, -leheight / 2, lbwidth, Math.floor(y - oldY) + lbheight / 2);
                 this.renderer.popTransform();
 
                 this.renderer.pushTransform(x + this.canvas.width / 2, y + height, this.reversed? 0 : Math.PI);
+                this.renderer.drawImage(this.noteskin.getLaneInstanceTexture(note.lane, 4), -lewidth / 2, -leheight / 2);
+                this.renderer.popTransform();
+
+                this.renderer.pushTransform(x + this.canvas.width / 2, oldY + height - (this.reversed? 0 : lbheight / 2), this.reversed? Math.PI : 0);
                 this.renderer.drawImage(this.noteskin.getLaneInstanceTexture(note.lane, 4), -lewidth / 2, -leheight / 2);
                 this.renderer.popTransform();
 

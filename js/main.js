@@ -12,6 +12,8 @@ class Controller {
         this.holding = new Array(5);
         this.glow = new Array(5);
         this.index = new Array(5);
+
+        this.judgement = 0;
     }
 
     chartLoaded() {
@@ -45,13 +47,17 @@ class Controller {
     hit(index) {
         if (this.index[index] >= 0) {
             const note = this.main.chart.notes[this.index[index]];
-            if (Math.abs(note.time - (performance.now() - this.main.start)) < 100) {
+            const time = Math.abs(note.time - (performance.now() - this.main.start)); 
+            if (time <= Input.judgements.getMiss()) {
                 if (note.length == 0) {
                     this.index[index]++;
                     this.find(index);
                     this.glow[index] = performance.now() + 250.0;
+                    
+                    this.judgement = Input.judgements.findJudgement(time);
                 } else {
                     this.holding[index] = true;
+                    this.judgement = Input.judgements.findJudgement(time);
                 }
             }
         }
@@ -63,14 +69,24 @@ class Controller {
     pressed(index, trigger) {
         if (trigger) {
             this.glow[index] = performance.now() + 125.0;
-            this.hit(index);
+            if (!this.down[index]) {
+                this.hit(index);
+            }
         } else {
             if (this.index[index] >= 0 && this.holding[index]) {
                 const note = this.main.chart.notes[this.index[index]];
+                const time = Math.abs((note.time + note.length) - (performance.now() - this.main.start)); 
+
                 if (note.length > 0) {
                     this.index[index]++;
                     this.find(index);
                     this.glow[index] = performance.now() + 250.0;
+
+                    if (time > Input.judgements.getMiss()) {
+                        this.judgement = Input.judgements.jtimes.length - 1;
+                    } else {
+                        this.judgement = 0;
+                    }
 
                     this.holding[index] = false;
                 }
@@ -82,6 +98,7 @@ class Controller {
 
 // The Main class is the main part of Blast-Mania.
 class Main {
+    start = false;
     playable = false;
     start = 0;
 
@@ -137,7 +154,9 @@ class Main {
     }
 
     init() {
-        this.chart.setBPM(180);
+        let progress = 0;
+
+        this.chart.setBPM(210);
         let pos = 0;
         for (let i = 0; i < 1024; i++) {
             pos += (Math.round(Math.random()) * 2) - 1;
@@ -147,7 +166,7 @@ class Main {
                 pos = 0;
             }
 
-            this.chart.addNoteBeat(pos, i / 2.0, 1 / 4.0);
+            this.chart.addNoteBeat(pos, i / 4.0, 0);
         }
         this.chart.sort();
 
@@ -169,42 +188,50 @@ class Main {
         this.img_arrow = Main.loadImage("./assets/arrow.png");
         this.img_arrow_glow = Main.loadImage("./assets/arrow-glow.png");
         this.img_arrow_receptor = Main.loadImage("./assets/arrow-receptor.png");
+        this.img_pad = Main.loadImage("./assets/pad.png");
+        this.img_pad_glow = Main.loadImage("./assets/pad-glow.png");
+        this.img_pad_receptor = Main.loadImage("./assets/pad-receptor.png");
         this.img_long_body = Main.loadImage("./assets/long-body.png");
         this.img_long_end = Main.loadImage("./assets/long-end.png");
 
-        this.notetex = new NoteTexture(this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor, this.img_long_body, this.img_long_end);
+        this.arrownotetex = new NoteTexture(this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor, this.img_long_body, this.img_long_end);
+        this.padnotetex = new NoteTexture(this.img_pad, this.img_pad_glow, this.img_pad_receptor, this.img_long_body, this.img_long_end);
 
         this.noteskin = new Skin(
-            [ -90, 0, 45, 90, 180, ],
+            [ -90, 0, 0, 90, 180, ],
             [
-                this.notetex,
-                this.notetex,
-                this.notetex,
-                this.notetex,
-                this.notetex,
+                this.arrownotetex,
+                this.arrownotetex,
+                this.padnotetex,
+                this.arrownotetex,
+                this.arrownotetex,
             ]
         )
-        this.img_long_end.addEventListener("load", () => this.noteskin.storeInstances(0.8))
 
+        this.img_arrow.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_arrow_glow.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_arrow_receptor.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_pad.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_pad_glow.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_pad_receptor.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_long_body.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_long_end.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        
         this.menus.push(new MainMenu(this));
         this.menus.push(new GameMenu(this));
         this.menus.push(new SettingsMenu(this));
         this.menus[0].hidden = false;
 
         this.menus.forEach((e) => { e.resize(this.canvas.width, this.canvas.height) });
-        
-        let x = 0;
-        this.noteskin.instances.forEach((e, i) => {
-            console.log(i)
-            e.textures.forEach((t, j) => {
-                console.log(j);
+    }
 
-                const width = t.width;
+    checkStart(progress) {
+        if (progress >= 8) {
+            this.start = true;
+            alert("start");
 
-                this.renderer.drawImage(t, x, 0);
-                x += j * width;
-            })
-        });
+            this.noteskin.storeInstances(0.8);
+        }
     }
 
     updatePlayers() {
@@ -303,12 +330,16 @@ function start() {
     document.removeEventListener("mousedown", start);
     _main.init();
 
-    setTimeout(() => {
-        setInterval(() => { _main.update(); }, 1000.0 / _main.tickrate);
+    setTimeout(attempt, 500);
+}
+function attempt() {
+    if (!_main.start)
+        setTimeout(attempt, 500);
+
+    setInterval(() => { _main.update(); }, 1000.0 / _main.tickrate);
     
-        function drawloop() { _main.draw(); requestAnimationFrame(drawloop) }
-        requestAnimationFrame(drawloop);
-    }, 500);
+    function drawloop() { _main.draw(); requestAnimationFrame(drawloop) }
+    requestAnimationFrame(drawloop);
 }
 
 document.addEventListener("mousedown", start);

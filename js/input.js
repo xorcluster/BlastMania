@@ -35,8 +35,75 @@ class Keys {
         return this.keys.length;
     }
 }
+class Judgement {
+    /**
+     * @param { Array<string> } jnames 
+     * @param { Array<string> } jcolor 
+     * @param { Array<number> } jtimes 
+     */
+    constructor(jnames, jcolor, jtimes) {
+        this.jnames = jnames;
+        this.jcolor = jcolor;
+        this.jtimes = jtimes;
+    }
+
+    /**
+     * @param { number } ms 
+     */
+    findJudgement(ms) {
+        for (let i = 0; i < this.jtimes.length; i++) {
+            if (Math.abs(ms) <= this.jtimes[i])
+                return i;
+        }
+    }
+
+    /**
+     * @param { number } index 
+     * @returns { string }
+     */
+    getName(index) {
+        return this.jnames[index];
+    }
+    /**
+     * @param { number } index 
+     * @returns { string }
+     */
+    getColor(index) {
+        return this.jcolor[index];
+    }
+
+    getMiss() {
+        return this.jtimes[this.jtimes.length - 1];
+    }
+}
 class Input {
     static keys = new Keys("KeyE", "KeyF", "Space", "KeyJ", "KeyI");
+    static judgements = new Judgement(
+        [
+            "Perfect",
+            "Awesome",
+            "Great",
+            "Good",
+            "Mediocre",
+            "Miss",
+        ],
+        [
+            "#8ff",
+            "#ff4",
+            "#4f6",
+            "#18e",
+            "#f48",
+            "#f22",
+        ],
+        [
+            28,
+            59,
+            126,
+            178,
+            239,
+            275,
+        ]
+    );
 
     /**
      * @param { Main } main 
@@ -47,11 +114,12 @@ class Input {
 
     /**
      * @param { string } key
+     * @param { string } code
      * @param { boolean } trigger
      * @param { boolean } repeating
      */
     keypress(key, code, trigger, repeating) {
-        if (!repeating && this.main.playable) {
+        if (this.main.playable) {
             for (let i = 0; i < Input.keys.getSize(); i++) {
                 if (code === Input.keys.getKey(i)) {
                     this.main.controller.pressed(i, trigger);

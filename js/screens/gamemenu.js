@@ -27,6 +27,12 @@ class GameMenu extends Menu {
         this.stage.draw();
         this.renderer.drawImage(this.stage.canvas, 0, 0);
 
+        this.renderer.setFont("Arial", 32);
+        const text = Input.judgements.getName(this.main.controller.judgement);
+        const color = Input.judgements.getColor(this.main.controller.judgement);
+
+        this.renderer.text(text, (this.canvas.width - this.renderer.textWidth(text)) / 2, this.canvas.height / 2, color);
+
         if (this.main.playerList.length > 0) {
             const display = this.main.playerList[this.main.playerIndex].display;
 

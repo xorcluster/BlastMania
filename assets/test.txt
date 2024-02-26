@@ -2,5 +2,8 @@
 .artist=xorcluster
 .author=xorcluster
 .audio=null
-.bpm=180
 .endmeta
+120BPM
+;
+0,0.0B,1B
+4,0.0B,1B

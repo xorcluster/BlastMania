@@ -1,11 +1,22 @@
-class Noteskin {
+class NoteTexture {
+    /**
+     * @param  { ...HTMLImageElement } textures 
+     */
+    constructor(...textures) {
+        this.textures = textures;
+    }
+}
+class Skin {
     /**
      * @param { Array<number> } angles 
-     * @param { Array<Array<HTMLImageElement>> } note_textures 
+     * @param { Array<NoteTexture> } note_textures 
      */
     constructor(angles, note_textures) {
         this.angles = angles;
         this.note_textures = note_textures;
+
+        /** @type { Array<NoteTexture> } */
+        this.instances = new Array(note_textures.length);
     }
 
     /**
@@ -22,7 +33,16 @@ class Noteskin {
      * @returns { ImageBitmap }
      */
     getLaneTexture(i, j) {
-        return this.note_textures[i][j % this.note_textures.length];
+        return this.note_textures[i].textures[j];
+    }
+
+    /**
+     * @param { number } i
+     * @param { number } j
+     * @returns { ImageBitmap }
+     */
+    getLaneInstanceTexture(i, j) {
+        return this.instances[i].textures[j];
     }
 
     /**
@@ -33,6 +53,39 @@ class Noteskin {
     getNoteDimensions(i, j) {
         const tex = this.getLaneTexture(i, j);
         return [ tex.width, tex.height ];
+    }
+    
+    /**
+     * @param { number } i 
+     * @param { number } j 
+     * @returns { Array<number> }
+     */
+    getNoteInstanceDimensions(i, j) {
+        const tex = this.getLaneInstanceTexture(i, j);
+        return [ tex.width, tex.height ];
+    }
+
+    /**
+     * @param { number } scale 
+     */
+    storeInstances(scale) {
+        for (let i = 0; i < this.note_textures.length; i++) {
+            let textures = this.note_textures[i].textures;
+            let canvases = [];
+            
+            for (let j = 0; j < textures.length; j++) {
+                let canvas = new OffscreenCanvas(Math.floor(textures[j].width * scale), Math.floor(textures[j].height * scale));
+                let graphics = canvas.getContext("2d");
+
+                graphics.drawImage(textures[j], 0, 0, Math.floor(textures[j].width * scale), Math.floor(textures[j].height * scale));
+
+                canvases.push(canvas);
+                console.log("instanced");
+            }
+
+            this.instances[i] = new NoteTexture();
+            this.instances[i].textures = canvases;
+        }
     }
 }
 class Transform {
@@ -74,7 +127,6 @@ class Renderer {
     resize(width, height) {
         this.width = width;
         this.height = height;
-        this.graphics.imageSmoothingEnabled = false;
     }
 
     /**

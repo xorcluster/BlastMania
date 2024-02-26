@@ -44,8 +44,15 @@ class MainMenu extends Menu {
     draw() {
         this.renderer.clear(null);
         this.selwhl.draw(this, this.renderer);
-    }
 
+        if (this.main.playerList.length > 0) {
+            const display = this.main.playerList[this.main.playerIndex].display;
+
+            if (this.main.playerList[this.main.playerIndex].done) {
+                this.renderer.drawImage(display, this.canvas.width - display.width, this.canvas.height - display.height);
+            }
+        }
+    }
     /**
      * @param { number } x 
      * @param { number } y 

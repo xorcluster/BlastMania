@@ -70,6 +70,14 @@ class SettingsMenu extends Menu {
                 this.renderer.restore();
             });
         }
+
+        if (this.main.playerList.length > 0) {
+            const display = this.main.playerList[this.main.playerIndex].display;
+
+            if (this.main.playerList[this.main.playerIndex].done) {
+                this.renderer.drawImage(display, this.canvas.width - display.width, this.canvas.height - display.height);
+            }
+        }
     }
 
     /**
@@ -102,11 +110,11 @@ class SettingsMenu extends Menu {
 
 class ControlsWidgetComponent extends WidgetComponent {
     options = [
-        "Key 1",
-        "Key 2",
-        "Key 3",
-        "Key 4",
-        "Key 5",
+        "Down-Left Key",
+        "Up-Left Key",
+        "Pad Key",
+        "Up-Right Key",
+        "Down-Right Key",
     ]
     values = [
         "undefined",
@@ -340,6 +348,7 @@ class PlayerWidgetComponent extends WidgetComponent {
 
                 if (key === "Enter") {
                     menu.main.playerIndex = this.pindex;
+                    Main.storeInfo("player-index", this.pindex);
                 }
             } else {
                 this.profilewhl.keypress(menu, key, code);

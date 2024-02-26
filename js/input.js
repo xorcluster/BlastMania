@@ -58,6 +58,14 @@ class Input {
                     return;
                 }
             }
+            if (code === "Backquote") {
+                this.main.menus[1].start();
+            }
+        }
+        if (code === "F8") {
+            Main.loadFile((e) => {
+                this.main.chart = Chart.loadChart(atob(e.substring(e.indexOf(",") + 1, e.length)));
+            })
         }
         if (trigger) {
             this.main.menus.forEach((e) => { if (e.hidden) return; e.keypress(key, code); });

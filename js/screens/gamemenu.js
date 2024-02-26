@@ -26,6 +26,14 @@ class GameMenu extends Menu {
 
         this.stage.draw();
         this.renderer.drawImage(this.stage.canvas, 0, 0);
+
+        if (this.main.playerList.length > 0) {
+            const display = this.main.playerList[this.main.playerIndex].display;
+
+            if (this.main.playerList[this.main.playerIndex].done) {
+                this.renderer.drawImage(display, 0, 0);
+            }
+        }
     }
 
     /**
@@ -34,6 +42,7 @@ class GameMenu extends Menu {
      */
     keypress(key, code) {
         if (code === "Escape") {
+            this.main.playable = false;
             this.main.menus[0].hidden = false;
             this.hidden = true;
         }

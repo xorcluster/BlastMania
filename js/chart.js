@@ -88,6 +88,73 @@ class Chart {
         return this.notes.length
     }
 
+    /**
+     * @param { string } text 
+     */
     static loadChart(text) {
+        let lines = text.split("\n");
+
+        let chart = new Chart("null", "null", "null", null);
+
+        let metadata = true;
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+
+            if (metadata) {
+                const value = line.substring(line.indexOf("=") + 1, line.length);
+                const name = line.substring(0, line.indexOf("="));
+                console.log(value, name);
+                let set = false;
+                switch (name) {
+                    case ".title":
+                        chart.title = value;
+                        set = true;
+                        break;
+                    case ".artist":
+                        chart.artist = value;
+                        set = true;
+                        break;
+                    case ".author":
+                        chart.author = value;
+                        set = true;
+                        break;
+                    case ".audio":
+                        chart.audio = Main.loadAudio(value);
+                        set = true;
+                        break;
+                    case ".eom" || ".endofmeta":
+                        metadata = false;
+                        set = true;
+                        break;
+                }
+                if (set) {
+                    continue;
+                }
+            }
+
+            if (line.startsWith(";"))
+                continue;
+
+            const sequence = line.split(",");
+            if (sequence[0].endsWith("BPM")) {
+                chart.setBPM(sequence[0].substring(0, sequence[0].length - 3));
+                console.log("BPM Change");
+            } else {
+                if (sequence.length > 1) {
+                    chart.addNoteBeat(
+                        parseInt(sequence[0]) % 5,
+                        parseFloat(sequence[1]),
+                        sequence.length >= 3? parseFloat(sequence[2]) : 0,
+                    )
+                }
+            }
+        }
+        chart.sort();
+
+        console.log(chart);
+        return chart;
     }
+}
+class Pack {
+
 }

@@ -9,6 +9,7 @@ class Controller {
         this.main = main;
 
         this.down = new Array(5);
+        this.holding = new Array(5);
         this.glow = new Array(5);
         this.index = new Array(5);
     }
@@ -45,9 +46,13 @@ class Controller {
         if (this.index[index] >= 0) {
             const note = this.main.chart.notes[this.index[index]];
             if (Math.abs(note.time - (performance.now() - this.main.start)) < 100) {
-                this.index[index]++;
-                this.find(index);
-                this.glow[index] = performance.now() + 250.0;
+                if (note.length == 0) {
+                    this.index[index]++;
+                    this.find(index);
+                    this.glow[index] = performance.now() + 250.0;
+                } else {
+                    this.holding[index] = true;
+                }
             }
         }
     }
@@ -56,8 +61,21 @@ class Controller {
      * @param { boolean } trigger 
      */
     pressed(index, trigger) {
-        if (trigger)
+        if (trigger) {
+            this.glow[index] = performance.now() + 125.0;
             this.hit(index);
+        } else {
+            if (this.index[index] >= 0 && this.holding[index]) {
+                const note = this.main.chart.notes[this.index[index]];
+                if (note.length > 0) {
+                    this.index[index]++;
+                    this.find(index);
+                    this.glow[index] = performance.now() + 250.0;
+
+                    this.holding[index] = false;
+                }
+            }
+        }
         this.down[index] = trigger;
     }
 }
@@ -100,16 +118,18 @@ class Main {
 
         // Creating the chart (without any metadata of course).
         this.chart = new Chart();
-        /** @type { Noteskin } */
+        /** @type { Skin } */
         this.noteskin = undefined;
 
         // Creating the players list for each profile saved.
         /** @type { Array<Player> } */
         this.playerList = new Array(0);
-        this.playerIndex = 0;
+
+        let pi = localStorage.getItem("blastmania-player-index");
+        this.playerIndex = pi != null? pi : 0;
 
         // Checks for a resize, then acts accordingly.
-        window.addEventListener("resize", () => this.resize(innerWidth, innerHeight));
+        window.addEventListener("resize", (e) => this.resize(innerWidth, innerHeight));
 
         // Key inputs.
         document.addEventListener("keydown", (e) => this.input.keypress(e.key, e.code, true, e.repeat));
@@ -117,7 +137,7 @@ class Main {
     }
 
     init() {
-        this.chart.setBPM(128);
+        this.chart.setBPM(180);
         let pos = 0;
         for (let i = 0; i < 1024; i++) {
             pos += (Math.round(Math.random()) * 2) - 1;
@@ -127,7 +147,7 @@ class Main {
                 pos = 0;
             }
 
-            this.chart.addNoteBeat(pos, i / 6.0, 0.0);
+            this.chart.addNoteBeat(pos, i / 2.0, 1 / 4.0);
         }
         this.chart.sort();
 
@@ -135,28 +155,36 @@ class Main {
         if (storedPlayers != null) {
             storedPlayers = JSON.parse(storedPlayers);
             storedPlayers.forEach(e => {
-                console.log(e);
-
                 let player = Player.loadPlayer(e.name, e.icon, e.exp);
                 this.playerList.push(player);
-                console.log(player);
             });
+        }
+
+        console.log(this.playerList);
+
+        if (this.playerList.length > 0) {
+            console.log("found");
         }
 
         this.img_arrow = Main.loadImage("./assets/arrow.png");
         this.img_arrow_glow = Main.loadImage("./assets/arrow-glow.png");
         this.img_arrow_receptor = Main.loadImage("./assets/arrow-receptor.png");
+        this.img_long_body = Main.loadImage("./assets/long-body.png");
+        this.img_long_end = Main.loadImage("./assets/long-end.png");
 
-        this.noteskin = new Noteskin(
+        this.notetex = new NoteTexture(this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor, this.img_long_body, this.img_long_end);
+
+        this.noteskin = new Skin(
             [ -90, 0, 45, 90, 180, ],
             [
-                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
-                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
-                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
-                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
-                [ this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor ],
+                this.notetex,
+                this.notetex,
+                this.notetex,
+                this.notetex,
+                this.notetex,
             ]
         )
+        this.img_long_end.addEventListener("load", () => this.noteskin.storeInstances(0.8))
 
         this.menus.push(new MainMenu(this));
         this.menus.push(new GameMenu(this));
@@ -164,6 +192,19 @@ class Main {
         this.menus[0].hidden = false;
 
         this.menus.forEach((e) => { e.resize(this.canvas.width, this.canvas.height) });
+        
+        let x = 0;
+        this.noteskin.instances.forEach((e, i) => {
+            console.log(i)
+            e.textures.forEach((t, j) => {
+                console.log(j);
+
+                const width = t.width;
+
+                this.renderer.drawImage(t, x, 0);
+                x += j * width;
+            })
+        });
     }
 
     updatePlayers() {
@@ -177,6 +218,7 @@ class Main {
         });
         console.log(data);
         Main.storeInfo("players", JSON.stringify(data));
+        this.playerIndex = Math.min(this.playerIndex, this.playerList.length);
     }
 
     /**
@@ -186,6 +228,7 @@ class Main {
     resize(width, height) {
         this.canvas.width = width;
         this.canvas.height = height;
+        this.renderer.resize(width, height);
 
         this.menus.forEach((e) => { e.resize(width, height) });
     }
@@ -257,11 +300,6 @@ _main.graphics.fillText(text, _main.canvas.width / 2 - _main.graphics.measureTex
 
 // This is called once the event listener calls the handler.
 function start() {
-    Main.loadFile((url) => {
-        console.log(url);
-        console.log(atob(url.substring(url.indexOf(',') + 1, url.length)));
-    });
-    
     document.removeEventListener("mousedown", start);
     _main.init();
 
@@ -270,7 +308,7 @@ function start() {
     
         function drawloop() { _main.draw(); requestAnimationFrame(drawloop) }
         requestAnimationFrame(drawloop);
-    }, 200);
+    }, 500);
 }
 
 document.addEventListener("mousedown", start);

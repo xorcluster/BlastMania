@@ -8,7 +8,7 @@ class Stage {
 
     /**
      * @param { Main } main 
-     * @param { Noteskin } noteskin 
+     * @param { Skin } noteskin 
      */
     constructor(main, noteskin) {
         this.main = main;
@@ -39,7 +39,19 @@ class Stage {
             if (controller.index[i] < 0)
                 continue;
 
-            const time = chart.notes[controller.index[i]].time - (performance.now() - this.main.start);
+            const note = chart.notes[controller.index[i]];
+            const time = (note.time + note.length) - (performance.now() - this.main.start);
+
+            if (controller.holding[i]) {
+                if (time <= 0) {
+                    controller.index[i]++;
+                    controller.find(i);
+                    controller.glow[i] = performance.now() + 250.0;
+
+                    controller.holding[i] = false;
+                    break;
+                }
+            }
 
             if (time <= -100) {
                 controller.index[i]++;
@@ -53,9 +65,9 @@ class Stage {
         this.renderer.clear(`rgb(255, 255, 255, ${Math.round(this.clearAlpha * 100)}%)`);
 
         for (let i = 0; i < 5; i++) {
-            const dimensions = this.noteskin.getNoteDimensions(i, 2);
-            const width = Math.floor(dimensions[0] * this.notesize);
-            const height = Math.floor(dimensions[1] * this.notesize);
+            const dimensions = this.noteskin.getNoteInstanceDimensions(i, 2);
+            const width = dimensions[0];
+            const height = dimensions[1];
 
             const multiply = i - 2;
 
@@ -69,10 +81,10 @@ class Stage {
             const glow = this.main.controller.glow[i] - performance.now();
 
             this.renderer.pushTransform(x + this.canvas.width / 2, y + height, this.noteskin.getLaneAngle(i));
-            this.renderer.drawImageScaled(this.noteskin.getLaneTexture(i, 2), -width / 2, -height / 2, width, height);
+            this.renderer.drawImage(this.noteskin.getLaneInstanceTexture(i, 2), -width / 2, -height / 2);
             if (glow > 0) {
                 this.renderer.graphics.globalAlpha = Math.max(glow, 0) / 250.0;
-                this.renderer.drawImageScaled(this.noteskin.getLaneTexture(i, 1), -width / 2, -height / 2, width, height);
+                this.renderer.drawImage(this.noteskin.getLaneInstanceTexture(i, 1), -width / 2, -height / 2);
                 this.renderer.graphics.globalAlpha = 1.0;
             }
             this.renderer.popTransform();
@@ -90,35 +102,53 @@ class Stage {
                 break;
             }
 
-            const dimensions = this.noteskin.getNoteDimensions(note.lane, 0);
-            const width = Math.floor(dimensions[0] * this.notesize);
-            const height = Math.floor(dimensions[1] * this.notesize);
+            const dimensions = this.noteskin.getNoteInstanceDimensions(note.lane, 0);
+            const width = dimensions[0];
+            const height = dimensions[1];
 
             const multiply = note.lane - 2;
 
             let x = width * multiply;
             let y = (this.canvas.height) * (time / 1000.0);
+            if (this.main.controller.holding[note.lane] && lanei == i) {
+                y = Math.max(y, 0);
+            }
+
             if (this.reversed) {
                 y = (this.canvas.height - height * 2) - y;
             }
 
             let angle = this.noteskin.getLaneAngle(note.lane);
             
-            this.renderer.pushTransform(x + this.canvas.width / 2, y + height, angle);
-            this.renderer.drawImageScaled(this.noteskin.getLaneTexture(note.lane, 0), -width / 2, -height / 2, width, height);
-            this.renderer.popTransform();
+            if (note.length > 0) {
+                const lbdimensions = this.noteskin.getNoteInstanceDimensions(note.lane, 3);
+                const lbwidth = lbdimensions[0];
+                const lbheight = lbdimensions[1];
 
-            /*if (note.length > 0) {
-                const ldimensions = this.noteskin.getNoteDimensions(note.lane, 4);
-                const lwidth = Math.floor(ldimensions[0] * this.notesize);
-                const lheight = Math.floor(ldimensions[1] * this.notesize);
+                const ledimensions = this.noteskin.getNoteInstanceDimensions(note.lane, 4);
+                const lewidth = ledimensions[0];
+                const leheight = ledimensions[1];
 
+                let oldY = y;
                 y = (this.canvas.height) * ((time + note.length) / 1000.0);
+                if (this.reversed) {
+                    y = (this.canvas.height - height * 2) - y;
+                }
 
-                this.renderer.pushTransform(x + this.canvas.width / 2, y + height, Math.PI);
-                this.renderer.drawImage(this.noteskin.getLaneTexture(note.lane, 4), -lwidth / 2, -lheight / 2, lwidth, lheight);
+                this.renderer.pushTransform(x + this.canvas.width / 2, oldY + height, this.reversed? 0 : Math.PI);
+                this.renderer.drawImageScaled(this.noteskin.getLaneInstanceTexture(note.lane, 4), -lewidth / 2, -leheight / 2, lbwidth, Math.floor(y - oldY));
                 this.renderer.popTransform();
-            }*/
+
+                this.renderer.pushTransform(x + this.canvas.width / 2, y + height, this.reversed? 0 : Math.PI);
+                this.renderer.drawImage(this.noteskin.getLaneInstanceTexture(note.lane, 4), -lewidth / 2, -leheight / 2);
+                this.renderer.popTransform();
+
+                y = oldY;
+            }
+
+            this.renderer.pushTransform(x + this.canvas.width / 2, y + height, angle);
+            this.renderer.drawImage(this.noteskin.getLaneInstanceTexture(note.lane, 0), -width / 2, -height / 2);
+            this.renderer.popTransform();
         }
     }
 }

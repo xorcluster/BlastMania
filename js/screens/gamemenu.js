@@ -33,7 +33,7 @@ class GameMenu extends Menu {
 
         this.renderer.text(text, (this.canvas.width - this.renderer.textWidth(text)) / 2, this.canvas.height / 2, color);
 
-        if (this.main.playerList.length > 0) {
+        if (Main.isPlayer(this.main)) {
             const display = this.main.playerList[this.main.playerIndex].display;
 
             if (this.main.playerList[this.main.playerIndex].done) {

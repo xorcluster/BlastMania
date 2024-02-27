@@ -71,7 +71,7 @@ class SettingsMenu extends Menu {
             });
         }
 
-        if (this.main.playerList.length > 0) {
+        if (Main.isPlayer(this.main)) {
             const display = this.main.playerList[this.main.playerIndex].display;
 
             if (this.main.playerList[this.main.playerIndex].done) {

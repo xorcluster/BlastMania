@@ -228,9 +228,6 @@ class Main {
     checkStart(progress) {
         if (progress >= 8) {
             this.start = true;
-            alert("start");
-
-            this.noteskin.storeInstances(0.8);
         }
     }
 
@@ -316,6 +313,19 @@ class Main {
     static storeInfo(name, data) {
         localStorage.setItem("blastmania-".concat(name), data);
     }
+
+    /**
+     * @param { Main } main 
+     */
+    static isPlayer(main) {
+        if (main.playerList.length > 0) {
+            if (main.playerIndex >= main.playerList.length)
+                return false;
+
+            return true;
+        }
+        return false;
+    }
 }
 
 // Creating a Main class with a tickrate of 64.
@@ -328,6 +338,7 @@ _main.graphics.fillText(text, _main.canvas.width / 2 - _main.graphics.measureTex
 // This is called once the event listener calls the handler.
 function start() {
     document.removeEventListener("mousedown", start);
+    document.addEventListener("dragover", (e) => e.preventDefault());
     _main.init();
 
     setTimeout(attempt, 500);

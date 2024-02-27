@@ -130,6 +130,20 @@ class ImageComponent extends Component {
         this.height = height;
 
         this.image = image;
+
+        document.addEventListener("drop", (e) => {
+            if (this.highlight) {
+                e.preventDefault();
+                if (e.dataTransfer.files.length > 0) {
+                    let fr = new FileReader();
+                    fr.addEventListener("load", (e) => this.image.src = fr.result);
+                    fr.readAsDataURL(e.dataTransfer.files.item(0))
+                } else {
+                    this.image.src = e.dataTransfer.getData("text/plain");
+                }
+                console.log(e.dataTransfer);
+            }
+        })
     }
 
     /**

@@ -45,7 +45,7 @@ class MainMenu extends Menu {
         this.renderer.clear(null);
         this.selwhl.draw(this, this.renderer);
 
-        if (this.main.playerList.length > 0) {
+        if (Main.isPlayer(this.main)) {
             const display = this.main.playerList[this.main.playerIndex].display;
 
             if (this.main.playerList[this.main.playerIndex].done) {

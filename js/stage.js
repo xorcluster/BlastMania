@@ -1,6 +1,27 @@
+class Grade {
+    /**
+     * @param { Array<HTMLImageElement> } images 
+     * @param { Array<number> } accuracy 
+     */
+    constructor(images, accuracy) {
+        this.images = images;
+        this.accuracy = accuracy;
+    }
+
+    /**
+     * @param { number } accuracy 
+     */
+    findGradeIndex(accuracy) {
+        for (let i = 0; i < this.accuracy.length; i++) {
+            if (accuracy >= this.accuracy[i])
+                return i;
+        }
+        return -1;
+    }
+}
 class Stage {
     scrollspeed = 1.75;
-    notesize = 0.6;
+    notesize = 0.75;
 
     reversed = true;
 
@@ -16,7 +37,6 @@ class Stage {
 
         this.canvas = new OffscreenCanvas(640, 480);
         this.renderer = new Renderer(this.canvas.getContext("2d"), 640, 480);
-
     }
 
     start() {
@@ -51,7 +71,10 @@ class Stage {
                     controller.glow[i] = performance.now() + 250.0;
 
                     controller.holding[i] = false;
+
                     controller.judgement = 0;
+                    controller.judgecount[0]++;
+                    controller.judges++;
 
                     break;
                 }
@@ -60,7 +83,10 @@ class Stage {
             if (time <= -Input.judgements.getMiss()) {
                 controller.index[i]++;
                 controller.find(i);
+                
                 controller.judgement = Input.judgements.jtimes.length - 1;
+                controller.judgecount[controller.judgecount.length]++;
+                controller.judges++;
             }
         }
     }

@@ -13,10 +13,16 @@ class Controller {
         this.glow = new Array(5);
         this.index = new Array(5);
 
+        this.judges = 0;
         this.judgement = 0;
+        this.judgecount = new Array(Input.judgements.jtimes.length);
     }
 
     chartLoaded() {
+        for (let i = 0; i < this.judgecount.length; i++) {
+            this.judgecount[i] = 0;
+        }
+
         for (let i = 0; i < 5; i++) {
             this.index[i] = 0;
             this.find(i);
@@ -53,12 +59,12 @@ class Controller {
                     this.index[index]++;
                     this.find(index);
                     this.glow[index] = performance.now() + 250.0;
-                    
-                    this.judgement = Input.judgements.findJudgement(time);
                 } else {
                     this.holding[index] = true;
-                    this.judgement = Input.judgements.findJudgement(time);
                 }
+                this.judgement = Input.judgements.findJudgement(time);
+                this.judgecount[this.judgement]++;
+                this.judges++;
             }
         }
     }
@@ -83,10 +89,12 @@ class Controller {
                     this.glow[index] = performance.now() + 250.0;
 
                     if (time > Input.judgements.getMiss()) {
-                        this.judgement = Input.judgements.jtimes.length - 1;
+                        this.judgement = Input.judgements.jtimes.length;
                     } else {
                         this.judgement = 0;
                     }
+                    this.judgecount[this.judgement]++;
+                    this.judges++;
 
                     this.holding[index] = false;
                 }
@@ -98,6 +106,8 @@ class Controller {
 
 // The Main class is the main part of Blast-Mania.
 class Main {
+    combo = 0;
+
     start = false;
     playable = false;
     start = 0;
@@ -137,6 +147,8 @@ class Main {
         this.chart = new Chart();
         /** @type { Skin } */
         this.noteskin = undefined;
+        /** @type { Grade } */
+        this.gradeskin = undefined;
 
         // Creating the players list for each profile saved.
         /** @type { Array<Player> } */
@@ -156,9 +168,9 @@ class Main {
     init() {
         let progress = 0;
 
-        this.chart.setBPM(210);
+        this.chart.setBPM(120);
         let pos = 0;
-        for (let i = 0; i < 1024; i++) {
+        for (let i = 0; i < 128; i++) {
             pos += (Math.round(Math.random()) * 2) - 1;
             if (pos < 0) {
                 pos = 4;
@@ -194,6 +206,18 @@ class Main {
         this.img_long_body = Main.loadImage("./assets/long-body.png");
         this.img_long_end = Main.loadImage("./assets/long-end.png");
 
+        this.img_grade_star4 = Main.loadImage("./assets/grade-star4.png");
+        this.img_grade_star3 = Main.loadImage("./assets/grade-star3.png");
+        this.img_grade_star2 = Main.loadImage("./assets/grade-star2.png");
+        this.img_grade_star1 = Main.loadImage("./assets/grade-star1.png");
+        this.img_grade_s = Main.loadImage("./assets/grade-s.png");
+        this.img_grade_a = Main.loadImage("./assets/grade-a.png");
+        this.img_grade_b = Main.loadImage("./assets/grade-b.png");
+        this.img_grade_c = Main.loadImage("./assets/grade-c.png");
+        this.img_grade_d = Main.loadImage("./assets/grade-d.png");
+        this.img_grade_e = Main.loadImage("./assets/grade-e.png");
+        this.img_grade_f = Main.loadImage("./assets/grade-f.png");
+
         this.arrownotetex = new NoteTexture(this.img_arrow, this.img_arrow_glow, this.img_arrow_receptor, this.img_long_body, this.img_long_end);
         this.padnotetex = new NoteTexture(this.img_pad, this.img_pad_glow, this.img_pad_receptor, this.img_long_body, this.img_long_end);
 
@@ -207,6 +231,34 @@ class Main {
                 this.arrownotetex,
             ]
         )
+        this.gradeskin = new Grade(
+            [
+                this.img_grade_star4,
+                this.img_grade_star3,
+                this.img_grade_star2,
+                this.img_grade_star1,
+                this.img_grade_s,
+                this.img_grade_a,
+                this.img_grade_b,
+                this.img_grade_c,
+                this.img_grade_d,
+                this.img_grade_e,
+                this.img_grade_f,
+            ],
+            [
+                99.5,
+                98.75,
+                97.5,
+                95.0,
+                90.0,
+                80.0,
+                70.0,
+                60.0,
+                50.0,
+                25.0,
+                0.0,
+            ]
+        );
 
         this.img_arrow.addEventListener("load", () => { progress++; this.checkStart(progress) });
         this.img_arrow_glow.addEventListener("load", () => { progress++; this.checkStart(progress) });
@@ -216,6 +268,18 @@ class Main {
         this.img_pad_receptor.addEventListener("load", () => { progress++; this.checkStart(progress) });
         this.img_long_body.addEventListener("load", () => { progress++; this.checkStart(progress) });
         this.img_long_end.addEventListener("load", () => { progress++; this.checkStart(progress) });
+
+        this.img_grade_star4.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_star3.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_star2.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_star1.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_s.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_a.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_b.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_c.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_d.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_e.addEventListener("load", () => { progress++; this.checkStart(progress) });
+        this.img_grade_f.addEventListener("load", () => { progress++; this.checkStart(progress) });
         
         this.menus.push(new MainMenu(this));
         this.menus.push(new GameMenu(this));
@@ -226,7 +290,7 @@ class Main {
     }
 
     checkStart(progress) {
-        if (progress >= 8) {
+        if (progress >= 19) {
             this.start = true;
         }
     }

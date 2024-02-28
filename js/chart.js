@@ -17,6 +17,7 @@ class Note {
 class Chart {
     /** @type { Array<Note> } */
     notes = new Array();
+    endtime = 0;
 
     /**
      * @param { string } title 
@@ -43,6 +44,9 @@ class Chart {
      * @param { number } length 
      */
     addNoteBeat(lane, time, length=0) {
+        if ((time + length) * this.mspb > this.endtime) {
+            this.endtime = (time + length) * this.mspb;
+        }
         this.notes.push(new Note(lane, time * this.mspb, length * this.mspb))
     }
     /**
@@ -51,6 +55,9 @@ class Chart {
      * @param { number } length 
      */
     addNoteMS(lane, time, length=0) {
+        if (time + length > this.endtime) {
+            this.endtime = time + length;
+        }
         this.notes.push(new Note(lane, time, length))
     }
 
@@ -86,6 +93,10 @@ class Chart {
 
     getSize() {
         return this.notes.length
+    }
+
+    getEndTime() {
+        return this.endtime;
     }
 
     /**

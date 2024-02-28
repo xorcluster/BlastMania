@@ -85,7 +85,7 @@ class Stage {
                 controller.find(i);
                 
                 controller.judgement = Input.judgements.jtimes.length - 1;
-                controller.judgecount[controller.judgecount.length]++;
+                controller.judgecount[controller.judgecount.length - 1]++;
                 controller.judges++;
             }
         }

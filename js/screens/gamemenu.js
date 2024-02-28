@@ -38,32 +38,46 @@ class GameMenu extends Menu {
             }
         }
 
-        let time = (performance.now() - this.main.start) - this.main.chart.getEndTime();
+        let time = (performance.now() - this.main.start) - (this.main.chart.getEndTime() + 1000);
         if (time >= 0) {
-            this.renderer.clear(`rgb(100%, 100%, 100%, ${Math.min(time / 1000.0, 1.0)})`);
-            this.renderer.clear(`rgb(0%, 0%, 0%, ${Math.min(time / 1000.0, 1.0) / 4})`);
+            this.renderer.clear(`rgba(100%, 100%, 100%, ${100 * Math.min(time / 500.0, 1.0)}%)`);
+            this.renderer.clear(`rgba(0%, 0%, 0%, ${100 * Math.min(time / 500.0, 1.0) / 2}%)`);
 
             this.renderer.setFont("Arial", 64);
+            this.renderer.text("Results", (this.canvas.width - this.renderer.textWidth("Results")) / 2, 20, "#0008");
             this.renderer.text("Results", (this.canvas.width - this.renderer.textWidth("Results")) / 2, 16, "#fff");
             
-            let accuracy = 0;
-            for (let i = 0; i < Input.judgements.jtimes.length - 1; i++) {
-                accuracy += this.main.controller.judgecount[i] * ((5 - i) / 5);
+            {
+                let accuracy = 0;
+                for (let i = 0; i < Input.judgements.jtimes.length - 1; i++) {
+                    accuracy += this.main.controller.judgecount[i] * ((5 - i) / 5);
+                }
+                accuracy /= this.main.chart.getNotes();
+                accuracy *= 100;
+                
+                this.renderer.setFont("Arial", 64);
+                let acctext = accuracy.toFixed(2).concat("%");
+        
+                let index = this.main.gradeskin.findGradeIndex(accuracy);
+                let image = this.main.gradeskin.images[index];
+                if (image != null) {
+                    this.renderer.drawImage(image, this.canvas.width - image.width - 16, image.height - this.renderer.textHeight(acctext) + 16);
+                }
+                
+                this.renderer.text(acctext, this.canvas.width - this.renderer.textWidth(acctext) - 16, 20, "#0008");
+                this.renderer.text(acctext, this.canvas.width - this.renderer.textWidth(acctext) - 16, 16, "#fff");
             }
-            accuracy /= this.main.chart.getSize();
-            accuracy *= 100;
-            
-            this.renderer.setFont("Arial", 64);
-            let acctext = accuracy.toFixed(2).concat("%");
-    
-            let index = this.main.gradeskin.findGradeIndex(accuracy);
-            let image = this.main.gradeskin.images[index];
-            this.renderer.rect((this.canvas.width - this.renderer.textWidth(acctext.concat(" "))) / 2, 72, this.renderer.textWidth(acctext.concat(" ")), image.height + this.renderer.textHeight(acctext), "#0008");
-            if (image != null) {
-                this.renderer.drawImage(image, (this.canvas.width - image.width) / 2, 72 + image.height - this.renderer.textHeight(acctext));
+
+            this.renderer.setFont("Arial", 32);
+            let y = 16;
+            for (let i = 0; i < this.main.controller.judgecount.length; i++) {
+                let jcolor = Input.judgements.getColor(i);
+                let text = Input.judgements.getName(i).concat(": ", this.main.controller.judgecount[i]);
+
+                this.renderer.text(text, 16, y + 4, "#0008");
+                this.renderer.text(text, 16, y, jcolor);
+                y += this.renderer.textHeight(text);
             }
-            
-            this.renderer.text(acctext, (this.canvas.width - this.renderer.textWidth(acctext)) / 2, 72, "#fff");
         }
     }
 
@@ -81,7 +95,7 @@ class GameMenu extends Menu {
         for (let i = 0; i < Input.judgements.jtimes.length - 1; i++) {
             accuracy += this.main.controller.judgecount[i] * ((5 - i) / 5);
         }
-        accuracy /= this.main.chart.getSize();
+        accuracy /= this.main.chart.getNotes();
         accuracy *= 100;
         
         this.renderer.setFont("Arial", 64);
@@ -94,6 +108,7 @@ class GameMenu extends Menu {
             this.renderer.drawImage(image, this.canvas.width - image.width, image.height - this.renderer.textHeight(acctext));
         }
         
+        this.renderer.text(acctext, this.canvas.width - this.renderer.textWidth(acctext), 4, "#0008");
         this.renderer.text(acctext, this.canvas.width - this.renderer.textWidth(acctext), 0, "#fff");
     }
 

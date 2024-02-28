@@ -89,7 +89,7 @@ class Controller {
                     this.glow[index] = performance.now() + 250.0;
 
                     if (time > Input.judgements.getMiss()) {
-                        this.judgement = Input.judgements.jtimes.length;
+                        this.judgement = Input.judgements.jtimes.length - 1;
                     } else {
                         this.judgement = 0;
                     }
@@ -404,6 +404,8 @@ function start() {
     document.removeEventListener("mousedown", start);
     document.addEventListener("dragover", (e) => e.preventDefault());
     _main.init();
+
+    window.addEventListener("error", (e) => alert(e.message.concat(", ", e.filename, ", Line: ", e.lineno, ", Column:", e.colno)));
 
     setTimeout(attempt, 500);
 }

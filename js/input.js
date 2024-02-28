@@ -130,7 +130,7 @@ class Input {
                 this.main.menus[1].start();
             }
         }
-        if (code === "F8") {
+        if (code === "F8" && !this.main.playable) {
             Main.loadFile((e) => {
                 this.main.chart = Chart.loadChart(atob(e.substring(e.indexOf(",") + 1, e.length)));
             })

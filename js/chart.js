@@ -18,6 +18,7 @@ class Chart {
     /** @type { Array<Note> } */
     notes = new Array();
     endtime = 0;
+    lncounter = 0;
 
     /**
      * @param { string } title 
@@ -47,6 +48,9 @@ class Chart {
         if ((time + length) * this.mspb > this.endtime) {
             this.endtime = (time + length) * this.mspb;
         }
+        if (length > 0) {
+            this.lncounter++;
+        }
         this.notes.push(new Note(lane, time * this.mspb, length * this.mspb))
     }
     /**
@@ -57,6 +61,9 @@ class Chart {
     addNoteMS(lane, time, length=0) {
         if (time + length > this.endtime) {
             this.endtime = time + length;
+        }
+        if (length > 0) {
+            this.lncounter++;
         }
         this.notes.push(new Note(lane, time, length))
     }
@@ -92,7 +99,10 @@ class Chart {
     }
 
     getSize() {
-        return this.notes.length
+        return this.notes.length;
+    }
+    getNotes() {
+        return this.notes.length + this.lncounter;
     }
 
     getEndTime() {

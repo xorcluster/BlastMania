@@ -19,6 +19,7 @@ class Controller {
     }
 
     chartLoaded() {
+        this.main.combo = 0;
         for (let i = 0; i < this.judgecount.length; i++) {
             this.judgecount[i] = 0;
         }
@@ -65,6 +66,12 @@ class Controller {
                 this.judgement = Input.judgements.findJudgement(time);
                 this.judgecount[this.judgement]++;
                 this.judges++;
+
+                if (!Input.judgements.isComboBreak(this.judgement)) {
+                    this.main.combo++;
+                } else {
+                    this.main.combo = 0;
+                }
             }
         }
     }
@@ -96,6 +103,8 @@ class Controller {
                     this.judgecount[this.judgement]++;
                     this.judges++;
 
+                    this.main.combo++;
+
                     this.holding[index] = false;
                 }
             }
@@ -106,6 +115,9 @@ class Controller {
 
 // The Main class is the main part of Blast-Mania.
 class Main {
+    maxexp = 0;
+    currentexp = 0;
+
     combo = 0;
 
     start = false;
@@ -144,7 +156,7 @@ class Main {
         this.menus = new Array();
 
         // Creating the chart (without any metadata of course).
-        this.chart = new Chart();
+        this.chart = new Chart("null", "null", "null", "null", crypto.randomUUID());
         /** @type { Skin } */
         this.noteskin = undefined;
         /** @type { Grade } */
@@ -168,9 +180,9 @@ class Main {
     init() {
         let progress = 0;
 
-        this.chart.setBPM(120);
+        this.chart.setBPM(140);
         let pos = 0;
-        for (let i = 0; i < 128; i++) {
+        for (let i = 0; i < 16; i++) {
             pos += (Math.round(Math.random()) * 2) - 1;
             if (pos < 0) {
                 pos = 4;
@@ -182,11 +194,17 @@ class Main {
         }
         this.chart.sort();
 
+        console.log(EXPEngine.calculate(this.chart));
+
         let storedPlayers = localStorage.getItem("blastmania-players");
         if (storedPlayers != null) {
             storedPlayers = JSON.parse(storedPlayers);
             storedPlayers.forEach(e => {
-                let player = Player.loadPlayer(e.name, e.icon, e.exp);
+                let player = Player.loadPlayer(e.name, e.icon);
+                let plays = JSON.parse(e.plays);
+                plays.forEach(p => {
+                    player.plays.push(new Exp(p.uuid, p.exp));
+                })
                 this.playerList.push(player);
             });
         }
@@ -301,8 +319,9 @@ class Main {
             data.push({
                 name: e.name,
                 icon: e.iconsrc,
-                exp: e.exp
+                plays: e.plays != null? JSON.stringify(e.plays) : JSON.stringify([]),
             });
+            console.log(JSON.stringify(e.plays));
         });
         console.log(data);
         Main.storeInfo("players", JSON.stringify(data));
@@ -394,6 +413,7 @@ class Main {
 
 // Creating a Main class with a tickrate of 64.
 const _main = new Main(64);
+const _version = "beta-2-28-24";
 
 // Creating a text variable and drawing it to indicate to the player to click the frame.
 let text = "Click the frame to start Blast-Mania!";
@@ -404,6 +424,14 @@ function start() {
     document.removeEventListener("mousedown", start);
     document.addEventListener("dragover", (e) => e.preventDefault());
     _main.init();
+
+    let versionCheck = localStorage.getItem("blastmania-version");
+    if (versionCheck == null || versionCheck != _version) {
+        if (versionCheck == null) {
+            localStorage.clear();
+        }
+        localStorage.setItem("blastmania-version", _version);
+    }
 
     window.addEventListener("error", (e) => alert(e.message.concat(", ", e.filename, ", Line: ", e.lineno, ", Column:", e.colno)));
 

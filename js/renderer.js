@@ -168,10 +168,14 @@ class Renderer {
      * @param { number } x 
      * @param { number } y 
      * @param { string } color 
+     * @param { boolean } [stroke=false]  
      */
-    text(text, x, y, color) {
+    text(text, x, y, color, stroke=false) {
         this.graphics.textBaseline = "top";
         this.graphics.fillStyle = color;
+        if (stroke) {
+            this.graphics.strokeText(text, x, y);
+        }
         this.graphics.fillText(text, x, y);
     }
 

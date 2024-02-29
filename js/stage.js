@@ -76,6 +76,8 @@ class Stage {
                     controller.judgecount[0]++;
                     controller.judges++;
 
+                    this.main.combo++;
+
                     break;
                 }
             }
@@ -87,7 +89,30 @@ class Stage {
                 controller.judgement = Input.judgements.jtimes.length - 1;
                 controller.judgecount[controller.judgecount.length - 1]++;
                 controller.judges++;
+
+                this.main.combo = 0;
             }
+        }
+
+        let time = (performance.now() - this.main.start) - (this.main.chart.getEndTime() + 1000);
+        if (time >= 0 && this.main.playable) {
+            this.main.playable = false;
+
+            const player = this.main.playerList[this.main.playerIndex];
+
+            let accuracy = 0;
+            for (let i = 0; i < Input.judgements.jtimes.length - 1; i++) {
+                accuracy += this.main.controller.judgecount[i] * ((5 - i) / 5);
+            }
+            accuracy /= this.main.chart.getNotes();
+
+            this.main.maxexp = EXPEngine.calculate(chart);
+            this.main.currentexp = EXPEngine.calculate(chart) * (Math.pow(2, accuracy) / 2);
+
+            player.pushPlay(chart, accuracy);
+            player.update();
+
+            this.main.updatePlayers();
         }
     }
     draw() {

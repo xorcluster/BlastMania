@@ -45,7 +45,7 @@ class GameMenu extends Menu {
 
             this.renderer.setFont("Arial", 64);
             this.renderer.text("Results", (this.canvas.width - this.renderer.textWidth("Results")) / 2, 20, "#0008");
-            this.renderer.text("Results", (this.canvas.width - this.renderer.textWidth("Results")) / 2, 16, "#fff");
+            this.renderer.text("Results", (this.canvas.width - this.renderer.textWidth("Results")) / 2, 16, "#fff", true);
             
             {
                 let accuracy = 0;
@@ -65,7 +65,7 @@ class GameMenu extends Menu {
                 }
                 
                 this.renderer.text(acctext, this.canvas.width - this.renderer.textWidth(acctext) - 16, 20, "#0008");
-                this.renderer.text(acctext, this.canvas.width - this.renderer.textWidth(acctext) - 16, 16, "#fff");
+                this.renderer.text(acctext, this.canvas.width - this.renderer.textWidth(acctext) - 16, 16, "#fff", true);
             }
 
             this.renderer.setFont("Arial", 32);
@@ -74,9 +74,26 @@ class GameMenu extends Menu {
                 let jcolor = Input.judgements.getColor(i);
                 let text = Input.judgements.getName(i).concat(": ", this.main.controller.judgecount[i]);
 
-                this.renderer.text(text, 16, y + 4, "#0008");
-                this.renderer.text(text, 16, y, jcolor);
+                this.renderer.text(text, 16, y + 2, "#0008");
+                this.renderer.text(text, 16, y, jcolor, true);
                 y += this.renderer.textHeight(text);
+            }
+
+            let exptext = "EXP Gain: ".concat(this.main.currentexp.toFixed(2));
+            this.renderer.text(exptext, 16, this.canvas.height - this.renderer.textHeight(exptext) - 14, "#0008");
+            this.renderer.text(exptext, 16, this.canvas.height - this.renderer.textHeight(exptext) - 16, "#fff", true);
+            y = this.renderer.textHeight(exptext);
+
+            let mexptext = "EXP Max: ".concat(this.main.maxexp.toFixed(2));
+            this.renderer.text(mexptext, 16, this.canvas.height - this.renderer.textHeight(mexptext) - y - 14, "#0008");
+            this.renderer.text(mexptext, 16, this.canvas.height - this.renderer.textHeight(mexptext) - y - 16, "#fff", true);
+
+            if (Main.isPlayer(this.main)) {
+                const display = this.main.playerList[this.main.playerIndex].display;
+    
+                if (this.main.playerList[this.main.playerIndex].done) {
+                    this.renderer.drawImage(display, this.canvas.width - display.width, this.canvas.height - display.height);
+                }
             }
         }
     }
@@ -86,9 +103,15 @@ class GameMenu extends Menu {
         const text = Input.judgements.getName(this.main.controller.judgement);
         const color = Input.judgements.getColor(this.main.controller.judgement);
 
-        this.renderer.text(text, (this.canvas.width - this.renderer.textWidth(text)) / 2, 4 + this.canvas.height / 2, "#0009");
-        this.renderer.text(text, (this.canvas.width - this.renderer.textWidth(text)) / 2, this.canvas.height / 2, color);
-    
+        const ctext = "Combo: ".concat(this.main.combo.toFixed(0));
+
+        if (this.main.combo >= 10) {
+            this.renderer.text(ctext, (this.canvas.width - this.renderer.textWidth(ctext)) / 2, 2 + this.canvas.height / 2 - this.renderer.textHeight(ctext), "#0008");
+            this.renderer.text(ctext, (this.canvas.width - this.renderer.textWidth(ctext)) / 2, this.canvas.height / 2 - this.renderer.textHeight(ctext), "#fff", true);
+        }
+
+        this.renderer.text(text, (this.canvas.width - this.renderer.textWidth(text)) / 2, 2 + this.canvas.height / 2, "#0008");
+        this.renderer.text(text, (this.canvas.width - this.renderer.textWidth(text)) / 2, this.canvas.height / 2, color, true);
     }
     drawAccuracy() {
         let accuracy = 0;
@@ -121,6 +144,9 @@ class GameMenu extends Menu {
             this.main.playable = false;
             this.main.menus[0].hidden = false;
             this.hidden = true;
+        }
+        if (code === "Backquote") {
+            this.main.menus[1].start();
         }
     }
 }

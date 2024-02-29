@@ -39,11 +39,13 @@ class Judgement {
     /**
      * @param { Array<string> } jnames 
      * @param { Array<string> } jcolor 
+     * @param { Array<boolean> } jbreak 
      * @param { Array<number> } jtimes 
      */
-    constructor(jnames, jcolor, jtimes) {
+    constructor(jnames, jcolor, jbreak, jtimes) {
         this.jnames = jnames;
         this.jcolor = jcolor;
+        this.jbreak = jbreak;
         this.jtimes = jtimes;
     }
 
@@ -75,6 +77,13 @@ class Judgement {
     getMiss() {
         return this.jtimes[this.jtimes.length - 1];
     }
+
+    /**
+     * @param { number } index 
+     */
+    isComboBreak(index) {
+        return this.jbreak[index];
+    }
 }
 class Input {
     static keys = new Keys("KeyE", "KeyF", "Space", "KeyJ", "KeyI");
@@ -94,6 +103,14 @@ class Input {
             "#18e",
             "#f48",
             "#f22",
+        ],
+        [
+            false,
+            false,
+            false,
+            true,
+            true,
+            true,
         ],
         [
             28,
@@ -125,9 +142,6 @@ class Input {
                     this.main.controller.pressed(i, trigger);
                     return;
                 }
-            }
-            if (code === "Backquote") {
-                this.main.menus[1].start();
             }
         }
         if (code === "F8" && !this.main.playable) {

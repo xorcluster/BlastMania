@@ -25,12 +25,15 @@ class Chart {
      * @param { string } artist 
      * @param { string } author 
      * @param { string } audio 
+     * @param { string } hash 
      */
-    constructor(title, artist, author, audio) {
+    constructor(title, artist, author, audio, hash) {
         this.title = title;
         this.artist = artist;
         this.author = author;
         this.audio = audio;
+
+        this.hash = hash;
 
         this.bpm = 60;
         this.mspb = 0;
@@ -115,7 +118,7 @@ class Chart {
     static loadChart(text) {
         let lines = text.split("\n");
 
-        let chart = new Chart("null", "null", "null", null);
+        let chart = new Chart("null", "null", "null", null, crypto.randomUUID());
 
         let metadata = true;
         for (let i = 0; i < lines.length; i++) {

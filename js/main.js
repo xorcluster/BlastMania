@@ -201,10 +201,13 @@ class Main {
             storedPlayers = JSON.parse(storedPlayers);
             storedPlayers.forEach(e => {
                 let player = Player.loadPlayer(e.name, e.icon);
-                let plays = JSON.parse(e.plays);
-                plays.forEach(p => {
-                    player.plays.push(new Exp(p.uuid, p.exp));
-                })
+                if (e.exp == null) {                
+                
+                    let plays = JSON.parse(e.plays);
+                    plays.forEach(p => {
+                        player.plays.push(new Exp(p.uuid, p.exp));
+                    });
+                }
                 this.playerList.push(player);
             });
         }
@@ -423,16 +426,14 @@ _main.graphics.fillText(text, _main.canvas.width / 2 - _main.graphics.measureTex
 function start() {
     document.removeEventListener("mousedown", start);
     document.addEventListener("dragover", (e) => e.preventDefault());
-    _main.init();
-
+ 
     let versionCheck = localStorage.getItem("blastmania-version");
     if (versionCheck == null || versionCheck != _version) {
-        if (versionCheck == null) {
-            localStorage.clear();
-        }
         localStorage.setItem("blastmania-version", _version);
     }
 
+    _main.init();
+    
     window.addEventListener("error", (e) => alert(e.message.concat(", ", e.filename, ", Line: ", e.lineno, ", Column:", e.colno)));
 
     setTimeout(attempt, 500);

@@ -427,14 +427,17 @@ function start() {
     document.removeEventListener("mousedown", start);
     document.addEventListener("dragover", (e) => e.preventDefault());
  
+    window.addEventListener("error", (e) => alert(e.message.concat(", ", e.filename, ", Line: ", e.lineno, ", Column:", e.colno)));
+
     let versionCheck = localStorage.getItem("blastmania-version");
     if (versionCheck == null || versionCheck != _version) {
+        if (versionCheck == null) {
+            localStorage.clear();
+        }
         localStorage.setItem("blastmania-version", _version);
     }
 
-    _main.init();
-    
-    window.addEventListener("error", (e) => alert(e.message.concat(", ", e.filename, ", Line: ", e.lineno, ", Column:", e.colno)));
+    _main.init();    
 
     setTimeout(attempt, 500);
 }
